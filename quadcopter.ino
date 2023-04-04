@@ -84,6 +84,8 @@ constexpr float rad_to_deg = 180.f / PI; ///< 弧度制转角度制
 
 constexpr float max_angle = 20.f * deg_to_rad; ///< 最大倾角, 弧度制
 
+constexpr float max_takeoff_angle = 5.f * deg_to_rad; ///< 起飞时最大倾角, 弧度制
+
 /**
  * @brief 三维向量
  */
@@ -156,7 +158,7 @@ Vector3 target_position = {}; // 目标坐标
 Vector3 actual_position = {}; // 当前坐标
 Vector3 actual_velocity = {}; // 当前速度
 
-float throttle = 0.1f;  // 节流阀
+float throttle = 0.0f;  // 节流阀
 long  takeoff_altitude; // 起飞时海拔, 用于计算相对海拔
 
 Servo motors[4];
@@ -254,7 +256,19 @@ void update_jy901()
 {
   while (Serial.available()) {
     JY901.CopeSerialData(Serial.read()); // Call JY901 data cope function
-  }  
+  }
+}
+
+void update_actual_position_and_velocity()
+{
+  // TODO: 加速度计在震动环境下误差较大, 结合加速度计和陀螺仪的数据来获得更加准确的姿态
+  actual_velocity.x = JY901.stcAcc.a[1];
+  actual_velocity.y = -JY901.stcAcc.a[0];
+  actual_velocity.z = JY901.stcAcc.a[2];
+  for(int i = 0; i < 3; i++)
+    actual_position.v[i] += actual_velocity.v[i] * dt;
+}
+
 }
 
 void update_motors(const EulerAngles& angles, float throttle)
@@ -306,16 +320,6 @@ long get_actual_altitude()
   return JY901.stcPress.lAltitude;
 }
 
-void update_actual_position_and_velocity()
-{
-  // TODO: 加速度计在震动环境下误差较大, 结合加速度计和陀螺仪的数据来获得更加准确的姿态
-  actual_velocity.x = JY901.stcAcc.a[1];
-  actual_velocity.y = -JY901.stcAcc.a[0];
-  actual_velocity.z = JY901.stcAcc.a[2];
-  for(int i = 0; i < 3; i++)
-    actual_position.v[i] += actual_velocity.v[i] * dt;
-}
-
 void setup()
 {
   Serial.begin(115200);
@@ -323,9 +327,13 @@ void setup()
   setup_radio(100);
   setup_motors();
 
-  update_jy901();
+  EulerAngles actual_angles;
+  // 等待倾角小于起飞时最大倾角
+  do {
+    update_jy901();
+    actual_angles = get_actual_angles();
+  } while(abs(actual_angles.pitch) > max_takeoff_angle || abs(actual_angles.pitch) > max_takeoff_angle);
 
-  const EulerAngles actual_angles = get_actual_angles();
   target_angles.yaw   = actual_angles.yaw;
   target_angles.pitch = 0;
   target_angles.roll  = 0;
