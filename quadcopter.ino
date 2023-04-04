@@ -114,6 +114,7 @@ struct PIDState {
 struct RadioPackage
 {
   EulerAngles target;
+  float       throttle;
 };
 
 PIDState angle_states[3] = {
@@ -180,15 +181,23 @@ void print_actual_position()
 void setup_motors()
 {
 #if QUAD_TYPE == QUAD_X
-  motors[FR].attach(Motor_FR);
-  motors[FL].attach(Motor_FL);
-  motors[BR].attach(Motor_BR);
-  motors[BL].attach(Motor_BL);
+  if(motors[FR].attach(Motor_FR) == INVALID_SERVO)
+    while(true);
+  if(motors[FL].attach(Motor_FL) == INVALID_SERVO)
+    while(true);
+  if(motors[BR].attach(Motor_BR) == INVALID_SERVO)
+    while(true);
+  if(motors[BL].attach(Motor_BL) == INVALID_SERVO)
+    while(true);
 #else
-  motors[F].attach(Motor_F);
-  motors[B].attach(Motor_B);
-  motors[R].attach(Motor_R);
-  motors[L].attach(Motor_L);
+  if(motors[F].attach(Motor_F) == INVALID_SERVO)
+    while(true);
+  if(motors[B].attach(Motor_B) == INVALID_SERVO)
+    while(true);
+  if(motors[R].attach(Motor_R) == INVALID_SERVO)
+    while(true);
+  if(motors[L].attach(Motor_L) == INVALID_SERVO)
+    while(true);
 #endif
 }
 
@@ -230,27 +239,25 @@ long get_actual_altitude()
   return JY901.stcPress.lAltitude;
 }
 
-void update_motors(const EulerAngles& pids)
+void update_motors(const EulerAngles& angles, float throttle)
 {
-  float throttle = 0.2f; // 节流阀
-
   // FIXME:
   // 1. writeMicroseconds 理论上可以让电机反转, 但实际上不行, 桨叶的气动结构基本都是设计为单向转的. 反向转的效果只用减小电机力, 让重力实现就行
   // 2. 为了适应不同的电机需要加一些东西, writeMicroseconds 是针对无刷电调的 PWM 控制的, 如果是有刷电调(或普通 MOS 管)可能需要用 analogWrite, 因为 writeMicroseconds 貌似不能做到输出满占空比
 
   // 假设 1000-1499 为逆时针旋转, 1501-2000 为顺时针旋转, 1500 为停止
 #if QUAD_TYPE == QUAD_X
-  motors[FR].writeMicroseconds(constrain(1500 - (throttle * 400 - pids.pitch + pids.roll - pids.yaw), 1000, 1500));
-  motors[FL].writeMicroseconds(constrain(1500 - (throttle * 400 - pids.pitch - pids.roll + pids.yaw), 1000, 1500));
+  motors[FR].writeMicroseconds(constrain(1500 - (throttle * 400 - angles.pitch + angles.roll - angles.yaw), 1000, 1500));
+  motors[FL].writeMicroseconds(constrain(1500 - (throttle * 400 - angles.pitch - angles.roll + angles.yaw), 1000, 1500));
   
-  motors[BR].writeMicroseconds(constrain(1500 - (throttle * 400 + pids.pitch + pids.roll + pids.yaw), 1000, 1500));
-  motors[BL].writeMicroseconds(constrain(1500 - (throttle * 400 + pids.pitch - pids.roll - pids.yaw), 1000, 1500));
+  motors[BR].writeMicroseconds(constrain(1500 - (throttle * 400 + angles.pitch + angles.roll + angles.yaw), 1000, 1500));
+  motors[BL].writeMicroseconds(constrain(1500 - (throttle * 400 + angles.pitch - angles.roll - angles.yaw), 1000, 1500));
 #else
-  motors[F].writeMicroseconds(constrain(1500 + (throttle * 400 - pids.pitch + pids.yaw), 1500, 2000));
-  motors[B].writeMicroseconds(constrain(1500 + (throttle * 400 + pids.pitch + pids.yaw), 1500, 2000));
+  motors[F].writeMicroseconds(constrain(1500 + (throttle * 400 - angles.pitch + angles.yaw), 1500, 2000));
+  motors[B].writeMicroseconds(constrain(1500 + (throttle * 400 + angles.pitch + angles.yaw), 1500, 2000));
   
-  motors[R].writeMicroseconds(constrain(1500 - (throttle * 400 + pids.roll - pids.yaw), 1000, 1500));
-  motors[L].writeMicroseconds(constrain(1500 - (throttle * 400 - pids.roll - pids.yaw), 1000, 1500));
+  motors[R].writeMicroseconds(constrain(1500 - (throttle * 400 + angles.roll - angles.yaw), 1000, 1500));
+  motors[L].writeMicroseconds(constrain(1500 - (throttle * 400 - angles.roll - angles.yaw), 1000, 1500));
 #endif
 }
 
@@ -274,16 +281,19 @@ void loop()
   update_actual_angle();
   update_actual_position_and_velocity();
 
-  EulerAngles pids;
+  EulerAngles actuator_angles;
   for(int i = 0; i < 3; i++)
   {
-    pids.v[i] = pid(target_angles.v[i], actual_angles.v[i], dt, angle_states[i]);
+    actuator_angles.v[i] = pid(target_angles.v[i], actual_angles.v[i], dt, angle_states[i]);
   }
+
+  // TODO: 定高
 
   // TODO: 感觉需要乘以一个系数, 具体多少不太清楚
   const float factor = 3.f;
   for(int i = 0; i < 3; i++)
-    pids.v[i] *= factor;
+    actuator_angles.v[i] *= factor;
 
-  update_motors(pids);
+  float throttle = 0.2f; // 节流阀
+  update_motors(actuator_angles, throttle);
 }
