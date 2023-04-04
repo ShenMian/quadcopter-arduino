@@ -58,6 +58,11 @@ enum Pin : uint8_t
   
   RF24_CE = 8,
   RF24_CS = 7,
+
+  NavLight_FR = 10,
+  NavLight_FL = 11,
+  NavLight_BR = 12,
+  NavLight_BL = 13,
 };
 
 /**
@@ -82,9 +87,8 @@ constexpr uint8_t radio_address[] = "00004";
 constexpr float deg_to_rad = PI / 180.f; ///< 角度制转弧度制
 constexpr float rad_to_deg = 180.f / PI; ///< 弧度制转角度制
 
-constexpr float max_angle = 20.f * deg_to_rad; ///< 最大倾角, 弧度制
-
-constexpr float max_takeoff_angle = 5.f * deg_to_rad; ///< 起飞时最大倾角, 弧度制
+constexpr float max_angle         = 20.f * deg_to_rad; ///< 最大倾角, 弧度制
+constexpr float max_takeoff_angle = 5.f * deg_to_rad;  ///< 起飞时最大倾角, 弧度制
 
 /**
  * @brief 三维向量
@@ -115,11 +119,44 @@ union EulerAngles
 };
 
 /**
+ * @brief 错误代码
+ */
+enum class ErrorCode
+{
+  Normal,             ///< 正常
+  RadioDisconnected,  ///< 无线电信号中断
+  LowBattery,         ///< 低电量
+  CriticalLowBattery, ///< 严重低电量
+  Unknown,            ///< 未知错误
+};
+
+/**
+ * @brief 指示器状态
+ */
+struct IndicatorState
+{
+  uint8_t timer;
+  uint8_t interval; ///< 闪烁间隔
+  int8_t count;     ///< 闪烁次数
+};
+
+/**
+ * @brief 无线电数据包
+ */
+struct RadioPackage
+{
+  EulerAngles target_angles;
+  Vector3     target_position;
+  float       throttle;
+};
+
+/**
  * @brief PID 状态
  *
  * 存储计算 PID 所需的参数.
  */
-struct PIDState {
+struct PIDState
+{
   PIDState(float kP, float kI, float kD)
     : kP(kP), kI(kI), kD(kD)
   {}
@@ -129,25 +166,16 @@ struct PIDState {
   float prev_error;     ///< 上一次误差
 };
 
-/**
- * @brief 无线电数据包
- */
-struct RadioPackage
-{
-  EulerAngles target;
-  float       throttle;
-};
-
 PIDState angle_states[3] = {
-  {0.1, 0.1, 0.1}, // yaw
-  {0.1, 0.1, 0.1}, // pitch
-  {0.1, 0.1, 0.1}, // roll
+  {4.0, 0.02, 0},  // yaw
+  {1.3, 0.04, 18}, // pitch
+  {1.3, 0.04, 18}, // roll
 };
 
 PIDState position_states[3] = {
-  {0.1, 0.1, 0.1}, // x
-  {0.1, 0.1, 0.1}, // y
-  {0.1, 0.1, 0.1}, // z
+  {0.1, 0.1, 20}, // x
+  {0.1, 0.1, 20}, // y
+  {0.1, 0.1, 20}, // z
 };
 
 // ZYX 欧拉角, 弧度制
@@ -163,6 +191,8 @@ long  takeoff_altitude; // 起飞时海拔, 用于计算相对海拔
 
 Servo motors[4];
 RF24  radio(RF24_CE, RF24_CS);
+
+IndicatorState indicator_state = {};
 
 /**
  * @brief PID 控制器
@@ -210,6 +240,63 @@ void print_actual_position()
   Serial.print(F("\n"));
 }
 
+void update_indicator_light()
+{
+  if(indicator_state.count == 0)
+    return;
+  indicator_state.timer += micros();
+  if(indicator_state.timer < indicator_state.interval)
+    return;
+  indicator_state.timer = 0;
+
+  const uint8_t value = indicator_state.count % 2;
+  digitalWrite(NavLight_FR, value);
+  digitalWrite(NavLight_FL, value);
+  digitalWrite(NavLight_BR, value);
+  digitalWrite(NavLight_BL, value);
+  if(indicator_state.count != -1)
+    indicator_state.count++;
+}
+
+void set_indicator_light(ErrorCode code)
+{
+  switch(code)
+  {
+    case ErrorCode::Normal:
+      indicator_state.count    = -1;
+      indicator_state.interval = 1000;
+      break;
+      
+    case ErrorCode::RadioDisconnected:
+      indicator_state.count    = 3 * 2;
+      indicator_state.interval = 200;
+      break;
+      
+    case ErrorCode::LowBattery:
+      indicator_state.count    = 5 * 2;
+      indicator_state.interval = 500;
+      break;
+      
+    case ErrorCode::CriticalLowBattery:
+      indicator_state.count    = 5 * 2;
+      indicator_state.interval = 200;
+      break;
+
+    case ErrorCode::Unknown:
+      indicator_state.count    = 5 * 2;
+      indicator_state.interval = 500;
+      break;
+  }
+}
+
+void setup_nav_lights()
+{
+  pinMode(NavLight_FR, OUTPUT);
+  pinMode(NavLight_FL, OUTPUT);
+  pinMode(NavLight_BR, OUTPUT);
+  pinMode(NavLight_BL, OUTPUT);
+}
+
 /**
  * @brief 初始化无线电
  */
@@ -230,22 +317,54 @@ void setup_motors()
 {
 #if QUAD_TYPE == QUAD_X
   if(motors[FR].attach(Motor_FR) == INVALID_SERVO)
-    while(true);
+    while(true)
+    {
+      set_indicator_light(ErrorCode::Unknown);
+      delay(1000);
+    }
   if(motors[FL].attach(Motor_FL) == INVALID_SERVO)
-    while(true);
+    while(true)
+    {
+      set_indicator_light(ErrorCode::Unknown);
+      delay(1000);
+    }
   if(motors[BR].attach(Motor_BR) == INVALID_SERVO)
-    while(true);
+    while(true)
+    {
+      set_indicator_light(ErrorCode::Unknown);
+      delay(1000);
+    }
   if(motors[BL].attach(Motor_BL) == INVALID_SERVO)
-    while(true);
+    while(true)
+    {
+      set_indicator_light(ErrorCode::Unknown);
+      delay(1000);
+    }
 #else
   if(motors[F].attach(Motor_F) == INVALID_SERVO)
-    while(true);
+    while(true)
+    {
+      set_indicator_light(ErrorCode::Unknown);
+      delay(1000);
+    }
   if(motors[B].attach(Motor_B) == INVALID_SERVO)
-    while(true);
+    while(true)
+    {
+      set_indicator_light(ErrorCode::Unknown);
+      delay(1000);
+    }
   if(motors[R].attach(Motor_R) == INVALID_SERVO)
-    while(true);
+    while(true)
+    {
+      set_indicator_light(ErrorCode::Unknown);
+      delay(1000);
+    }
   if(motors[L].attach(Motor_L) == INVALID_SERVO)
-    while(true);
+    while(true)
+    {
+      set_indicator_light(ErrorCode::Unknown);
+      delay(1000);
+    }
 #endif
 }
 
@@ -269,6 +388,15 @@ void update_actual_position_and_velocity()
     actual_position.v[i] += actual_velocity.v[i] * dt;
 }
 
+void update_radio()
+{
+  RadioPackage package;
+  while (radio.available()) {
+    radio.read(&package, sizeof(package));
+    target_angles   = package.target_angles;
+    target_position = package.target_position;
+    throttle        = package.throttle;
+  }
 }
 
 void update_motors(const EulerAngles& angles, float throttle)
@@ -323,7 +451,9 @@ long get_actual_altitude()
 void setup()
 {
   Serial.begin(115200);
+  while(!Serial);
 
+  setup_nav_lights();
   setup_radio(100);
   setup_motors();
 
@@ -343,12 +473,17 @@ void setup()
   target_position.z = 1;
 
   takeoff_altitude = get_actual_altitude();
+
+  set_indicator_light(ErrorCode::Normal);
 }
 
 void loop()
 {
+  update_radio();
   update_jy901();
   update_actual_position_and_velocity();
+
+  update_indicator_light();
 
   // 调整到目标姿态
   const EulerAngles actual_angles = get_actual_angles(); // 实际姿态, 弧度制
@@ -363,14 +498,14 @@ void loop()
     
   Vector3 actuator_position;
 
-  // 调整到指定高度(z)
+  // 调整到指定高度(Z)
   actual_position.z   = get_actual_altitude() - takeoff_altitude;
   actuator_position.z = pid(target_position.z, actual_position.z, dt, position_states[2]);
   throttle += actuator_position.z > 0.f ? 0.1f : -0.1f;
 
   // 调整姿态来到达指定 X, Y
-  actuator_position.x = pid(target_position.x, actual_position.x, dt, position_states[0]);
-  actuator_position.y = pid(target_position.y, actual_position.y, dt, position_states[1]);
+  actuator_position.x  = pid(target_position.x, actual_position.x, dt, position_states[0]);
+  actuator_position.y  = pid(target_position.y, actual_position.y, dt, position_states[1]);
   target_angles.pitch -= actuator_position.x;
   target_angles.roll  -= actuator_position.y;
 
