@@ -13,6 +13,17 @@
 #error Unsupported QUAD type
 #endif
 
+/**
+ * 机体坐标系:
+ *
+ *        z
+ *      x ↑
+ *       \|
+ * y ←----+
+ * 
+ * 坐标系原点为飞行器重心, 飞行器正前方为 X 轴正方向, 正左方为 Y 轴正方向, 正上方为 Z 轴正方向
+ */
+
 enum Pin : uint8_t
 {
   /**
@@ -68,6 +79,11 @@ enum Motor : uint8_t
 constexpr float   dt              = 0.002;   ///< 时间变化量
 constexpr uint8_t radio_address[] = "00004";
 
+constexpr float deg_to_rad = PI / 180.f; ///< 角度制转弧度制
+constexpr float rad_to_deg = 180.f / PI; ///< 弧度制转角度制
+
+constexpr float max_angle = 20.f * deg_to_rad; ///< 最大倾角, 弧度制
+
 /**
  * @brief 三维向量
  */
@@ -111,6 +127,9 @@ struct PIDState {
   float prev_error;     ///< 上一次误差
 };
 
+/**
+ * @brief 无线电数据包
+ */
 struct RadioPackage
 {
   EulerAngles target;
@@ -123,12 +142,22 @@ PIDState angle_states[3] = {
   {0.1, 0.1, 0.1}, // roll
 };
 
-// ZYX 欧拉角
-EulerAngles target_angles = {}; // 目标姿态, 弧度制
-EulerAngles actual_angles = {}; // 实际姿态, 弧度制
+PIDState position_states[3] = {
+  {0.1, 0.1, 0.1}, // x
+  {0.1, 0.1, 0.1}, // y
+  {0.1, 0.1, 0.1}, // z
+};
 
+// ZYX 欧拉角, 弧度制
+EulerAngles target_angles = {}; // 目标姿态
+
+// 以起飞点为坐标系原点
+Vector3 target_position = {}; // 目标坐标
 Vector3 actual_position = {}; // 当前坐标
 Vector3 actual_velocity = {}; // 当前速度
+
+float throttle = 0.1f;  // 节流阀
+long  takeoff_altitude; // 起飞时海拔, 用于计算相对海拔
 
 Servo motors[4];
 RF24  radio(RF24_CE, RF24_CS);
@@ -157,9 +186,10 @@ float pid(float target, float actual, float dt, PIDState& state)
 
 void print_actual_angles()
 {
+  const EulerAngles actual_angles = get_actual_angles();
   Serial.print(F("Actual angles: "));
   for (int i = 0; i < 3; i++) {
-    Serial.print(actual_angles.v[i] * 180.f);
+    Serial.print(actual_angles.v[i] * rad_to_deg);
     Serial.print(F(", "));
   }
   Serial.print(F("\n"));
@@ -178,6 +208,22 @@ void print_actual_position()
   Serial.print(F("\n"));
 }
 
+/**
+ * @brief 初始化无线电
+ */
+void setup_radio(uint8_t channel)
+{
+  while(!radio.begin());
+  radio.setChannel(channel);
+  radio.openReadingPipe(1, radio_address);
+  radio.setPALevel(RF24_PA_MIN);
+  radio.setDataRate(RF24_1MBPS);
+  radio.startListening();
+}
+
+/**
+ * @brief 初始化电机
+ */
 void setup_motors()
 {
 #if QUAD_TYPE == QUAD_X
@@ -201,42 +247,14 @@ void setup_motors()
 #endif
 }
 
-void setup_radio(uint8_t channel)
-{
-  while(!radio.begin());
-  radio.setChannel(channel);
-  radio.openReadingPipe(1, radio_address);
-  radio.setPALevel(RF24_PA_MIN);
-  radio.setDataRate(RF24_1MBPS);
-  radio.startListening();
-}
-
-void update_imu()
+/**
+ * @brief 更新 IMU 数据
+ */
+void update_jy901()
 {
   while (Serial.available()) {
     JY901.CopeSerialData(Serial.read()); // Call JY901 data cope function
   }  
-}
-
-void update_actual_angle()
-{
-  for (int i = 0; i < 3; i++)
-    actual_angles.v[i] = (float)JY901.stcAngle.Angle[i] / (SHRT_MAX + 1); // ZYX 欧拉角
-}
-
-void update_actual_position_and_velocity()
-{
-  for(int i = 0; i < 3; i++)
-  {
-    // TODO: 加速度计在震动环境下误差较大, 结合加速度计和陀螺仪的数据来获得更加准确的姿态
-    actual_velocity.v[i] += JY901.stcAcc.a[i] * dt;
-    actual_position.v[i] += actual_velocity.v[i] * dt;
-  }
-}
-
-long get_actual_altitude()
-{
-  return JY901.stcPress.lAltitude;
 }
 
 void update_motors(const EulerAngles& angles, float throttle)
@@ -261,39 +279,101 @@ void update_motors(const EulerAngles& angles, float throttle)
 #endif
 }
 
+/**
+ * @brief 获取实际姿态角
+ *
+ * MPU 6050 坐标系:
+ *
+ *   z
+ * y ↑
+ *  \|
+ *   +----→ x
+ */
+EulerAngles get_actual_angles()
+{
+  return { (float)JY901.stcAngle.Angle[2] / (SHRT_MAX + 1),   // yaw
+           (float)JY901.stcAngle.Angle[0] / (SHRT_MAX + 1),   // pitch
+           (float)JY901.stcAngle.Angle[1] / (SHRT_MAX + 1) }; // roll
+}
+
+/**
+ * @brief 获取气压计测量海拔
+ *
+ * 精度: ±1m
+ */
+long get_actual_altitude()
+{
+  return JY901.stcPress.lAltitude;
+}
+
+void update_actual_position_and_velocity()
+{
+  // TODO: 加速度计在震动环境下误差较大, 结合加速度计和陀螺仪的数据来获得更加准确的姿态
+  actual_velocity.x = JY901.stcAcc.a[1];
+  actual_velocity.y = -JY901.stcAcc.a[0];
+  actual_velocity.z = JY901.stcAcc.a[2];
+  for(int i = 0; i < 3; i++)
+    actual_position.v[i] += actual_velocity.v[i] * dt;
+}
+
 void setup()
 {
   Serial.begin(115200);
 
-  setup_motors();
   setup_radio(100);
+  setup_motors();
 
-  update_imu();
-  update_actual_angle();
+  update_jy901();
+
+  const EulerAngles actual_angles = get_actual_angles();
   target_angles.yaw   = actual_angles.yaw;
   target_angles.pitch = 0;
   target_angles.roll  = 0;
+
+  target_position.x = 0;
+  target_position.y = 0;
+  target_position.z = 1;
+
+  takeoff_altitude = get_actual_altitude();
 }
 
 void loop()
 {
-  update_imu();
-  update_actual_angle();
+  update_jy901();
   update_actual_position_and_velocity();
 
-  EulerAngles actuator_angles;
-  for(int i = 0; i < 3; i++)
+  // 调整到目标姿态
+  const EulerAngles actual_angles = get_actual_angles(); // 实际姿态, 弧度制
+  if(abs(actual_angles.pitch) > max_angle || abs(actual_angles.roll) > max_angle)
   {
-    actuator_angles.v[i] = pid(target_angles.v[i], actual_angles.v[i], dt, angle_states[i]);
+    // TODO: 倾角过大
   }
 
-  // TODO: 定高
+  EulerAngles actuator_angles; // 姿态控制量
+  for(int i = 0; i < 3; i++)
+    actuator_angles.v[i] = pid(target_angles.v[i], actual_angles.v[i], dt, angle_states[i]);
+    
+  Vector3 actuator_position;
+
+  // 调整到指定高度(z)
+  actual_position.z   = get_actual_altitude() - takeoff_altitude;
+  actuator_position.z = pid(target_position.z, actual_position.z, dt, position_states[2]);
+  throttle += actuator_position.z > 0.f ? 0.1f : -0.1f;
+
+  // 调整姿态来到达指定 X, Y
+  actuator_position.x = pid(target_position.x, actual_position.x, dt, position_states[0]);
+  actuator_position.y = pid(target_position.y, actual_position.y, dt, position_states[1]);
+  target_angles.pitch -= actuator_position.x;
+  target_angles.roll  -= actuator_position.y;
+
+  // 限定目标角度最大倾角
+  target_angles.pitch = constrain(target_angles.pitch, -max_angle, max_angle);
+  target_angles.roll  = constrain(target_angles.roll, -max_angle, max_angle);
 
   // TODO: 感觉需要乘以一个系数, 具体多少不太清楚
   const float factor = 3.f;
   for(int i = 0; i < 3; i++)
     actuator_angles.v[i] *= factor;
 
-  float throttle = 0.2f; // 节流阀
   update_motors(actuator_angles, throttle);
 }
