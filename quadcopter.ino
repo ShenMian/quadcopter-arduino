@@ -5,6 +5,14 @@
 #include <JY901.h>
 #include <limits.h>
 
+#define QUAD_PLUS 0x01 ///< 十字形模式, QUAD +
+#define QUAD_X    0x02 ///< X型模式
+
+#define QUAD_TYPE QUAD_X
+#if QUAD_TYPE != QUAD_PLUS && QUAD_TYPE != QUAD_X
+#error Unsupported QUAD type
+#endif
+
 enum Pin : uint8_t
 {
   /**
@@ -98,9 +106,9 @@ struct PIDState {
     : kP(kP), kI(kI), kD(kD)
   {}
 
-  float kP, kI, kD;
-  float integral = 0.f;
-  float prev_error;
+  float kP, kI, kD;     ///< PID 参数
+  float integral = 0.f; ///< 积分
+  float prev_error;     ///< 上一次误差
 };
 
 struct RadioPackage
@@ -134,7 +142,7 @@ RF24  radio(RF24_CE, RF24_CS);
  */
 float pid(float target, float actual, float dt, PIDState& state)
 {
-  // TODO: 可能要对积分项进行一个阈值的限定, 因为不能无限累积（可能会累积过度
+  // TODO: 可能要对积分项进行一个阈值的限定, 因为不能无限累积(可能会累积过度)
 
   const float error = target - actual;
   state.prev_error  = error;
@@ -144,31 +152,6 @@ float pid(float target, float actual, float dt, PIDState& state)
   const float d   = state.kD * (error - state.prev_error) / dt;
 
   return p + state.integral + d;
-}
-
-void setup_motors()
-{
-  /*
-  motors[FR].attach(Motor_FR);
-  motors[FL].attach(Motor_FL);
-  motors[BR].attach(Motor_BR);
-  motors[BL].attach(Motor_BL);
-  */
-  
-  motors[F].attach(Motor_F);
-  motors[B].attach(Motor_B);
-  motors[R].attach(Motor_R);
-  motors[L].attach(Motor_L);
-}
-
-void setup_radio(uint8_t channel)
-{
-  while(!radio.begin());
-  radio.setChannel(channel);
-  radio.openReadingPipe(1, radio_address);
-  radio.setPALevel(RF24_PA_MIN);
-  radio.setDataRate(RF24_1MBPS);
-  radio.startListening();
 }
 
 void print_actual_angles()
@@ -189,6 +172,34 @@ void print_actual_position()
     Serial.print(F(", "));
   }
   Serial.print(F("\n"));
+
+  Serial.print(abs(get_actual_altitude() - actual_position.z));
+  Serial.print(F("\n"));
+}
+
+void setup_motors()
+{
+#if QUAD_TYPE == QUAD_X
+  motors[FR].attach(Motor_FR);
+  motors[FL].attach(Motor_FL);
+  motors[BR].attach(Motor_BR);
+  motors[BL].attach(Motor_BL);
+#else
+  motors[F].attach(Motor_F);
+  motors[B].attach(Motor_B);
+  motors[R].attach(Motor_R);
+  motors[L].attach(Motor_L);
+#endif
+}
+
+void setup_radio(uint8_t channel)
+{
+  while(!radio.begin());
+  radio.setChannel(channel);
+  radio.openReadingPipe(1, radio_address);
+  radio.setPALevel(RF24_PA_MIN);
+  radio.setDataRate(RF24_1MBPS);
+  radio.startListening();
 }
 
 void update_imu()
@@ -221,31 +232,26 @@ long get_actual_altitude()
 
 void update_motors(const EulerAngles& pids)
 {
-  int throttle = 200; // 节流阀
-
-  JY901.stcLonLat.lLon;
-  JY901.stcLonLat.lLat;
-
-  Serial.print(abs(get_actual_altitude() - actual_position.z));
+  float throttle = 0.2f; // 节流阀
 
   // FIXME:
-  // 1. writeMicroseconds 理论上可以让电机反转, 但实际上不行, 桨叶的气动结构基本都是设计为单向转的。反向转的效果只用减小电机力, 让重力实现就行
-  // 2. 为了适应不同的电机需要加一些东西, writeMicroseconds 是针对无刷电调的pwm控制的, 如果是有刷电调(或普通mos管)可能需要用 analogWrite, 因为 writeMicroseconds 貌似不能做到输出满占空比
+  // 1. writeMicroseconds 理论上可以让电机反转, 但实际上不行, 桨叶的气动结构基本都是设计为单向转的. 反向转的效果只用减小电机力, 让重力实现就行
+  // 2. 为了适应不同的电机需要加一些东西, writeMicroseconds 是针对无刷电调的 PWM 控制的, 如果是有刷电调(或普通 MOS 管)可能需要用 analogWrite, 因为 writeMicroseconds 貌似不能做到输出满占空比
 
   // 假设 1000-1499 为逆时针旋转, 1501-2000 为顺时针旋转, 1500 为停止
-  /*
-  motors[FR].writeMicroseconds(constrain(1500 - (throttle - pids.pitch + pids.roll - pids.yaw), 1000, 1500));
-  motors[FL].writeMicroseconds(constrain(1500 - (throttle - pids.pitch - pids.roll + pids.yaw), 1000, 1500));
+#if QUAD_TYPE == QUAD_X
+  motors[FR].writeMicroseconds(constrain(1500 - (throttle * 400 - pids.pitch + pids.roll - pids.yaw), 1000, 1500));
+  motors[FL].writeMicroseconds(constrain(1500 - (throttle * 400 - pids.pitch - pids.roll + pids.yaw), 1000, 1500));
   
-  motors[BR].writeMicroseconds(constrain(1500 - (throttle + pids.pitch + pids.roll + pids.yaw), 1000, 1500));
-  motors[BL].writeMicroseconds(constrain(1500 - (throttle + pids.pitch - pids.roll - pids.yaw), 1000, 1500));
-  */
-
-  motors[F].writeMicroseconds(constrain(1500 + (throttle - pids.pitch + pids.yaw), 1500, 2000));
-  motors[B].writeMicroseconds(constrain(1500 + (throttle + pids.pitch + pids.yaw), 1500, 2000));
+  motors[BR].writeMicroseconds(constrain(1500 - (throttle * 400 + pids.pitch + pids.roll + pids.yaw), 1000, 1500));
+  motors[BL].writeMicroseconds(constrain(1500 - (throttle * 400 + pids.pitch - pids.roll - pids.yaw), 1000, 1500));
+#else
+  motors[F].writeMicroseconds(constrain(1500 + (throttle * 400 - pids.pitch + pids.yaw), 1500, 2000));
+  motors[B].writeMicroseconds(constrain(1500 + (throttle * 400 + pids.pitch + pids.yaw), 1500, 2000));
   
-  motors[R].writeMicroseconds(constrain(1500 - (throttle + pids.roll - pids.yaw), 1000, 1500));
-  motors[L].writeMicroseconds(constrain(1500 - (throttle - pids.roll - pids.yaw), 1000, 1500));
+  motors[R].writeMicroseconds(constrain(1500 - (throttle * 400 + pids.roll - pids.yaw), 1000, 1500));
+  motors[L].writeMicroseconds(constrain(1500 - (throttle * 400 - pids.roll - pids.yaw), 1000, 1500));
+#endif
 }
 
 void setup()
