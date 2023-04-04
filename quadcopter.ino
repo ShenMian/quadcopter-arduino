@@ -388,6 +388,17 @@ void update_actual_position_and_velocity()
     actual_position.v[i] += actual_velocity.v[i] * dt;
 }
 
+void check_battery_level()
+{
+  const auto voltage       = analogRead(A0) * 5.f / 1023.f;
+  const auto battery_level = map(voltage, 3.6f, 4.2f, 0.f, 100.f);
+
+  if(battery_level < 20.f)
+    set_indicator_light(ErrorCode::CriticalLowBattery);
+  else if(battery_level < 30.f)
+    set_indicator_light(ErrorCode::LowBattery);
+}
+
 void update_radio()
 {
   RadioPackage package;
@@ -479,6 +490,7 @@ void setup()
 
 void loop()
 {
+  check_battery_level();
   update_radio();
   update_jy901();
   update_actual_position_and_velocity();
