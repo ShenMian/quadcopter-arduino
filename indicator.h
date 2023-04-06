@@ -27,6 +27,7 @@ struct IndicatorState
 
 extern IndicatorState indicator_state;
 
+void setup_nav_lights();
 void set_nav_lights(uint8_t value);
 void update_indicator_light();
 void set_indicator_light(ErrorCode code);

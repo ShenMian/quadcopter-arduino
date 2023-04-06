@@ -56,10 +56,8 @@ enum Pin : uint8_t
   RF24_CE  = 8,
   RF24_CSN = 7,
 
-  NavLight_FR = 10,
-  NavLight_FL = 11,
-  NavLight_BR = 12,
-  NavLight_BL = 13,
+  NavLight_Font = 2,
+  NavLight_Back = 4,
 };
 
 /**

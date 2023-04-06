@@ -3,12 +3,16 @@
 
 IndicatorState indicator_state = {};
 
+void setup_nav_lights()
+{
+  pinMode(NavLight_Font, OUTPUT);
+  pinMode(NavLight_Back, OUTPUT);
+}
+
 void set_nav_lights(uint8_t value)
 {
-  digitalWrite(NavLight_FR, value);
-  digitalWrite(NavLight_FL, value);
-  digitalWrite(NavLight_BR, value);
-  digitalWrite(NavLight_BL, value);
+  digitalWrite(NavLight_Font, value);
+  digitalWrite(NavLight_Back, value);
 }
 
 void update_indicator_light()

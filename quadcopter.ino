@@ -66,14 +66,6 @@ void print_actual_position()
   Serial.print(F("\n"));
 }
 
-void setup_nav_lights()
-{
-  pinMode(NavLight_FR, OUTPUT);
-  pinMode(NavLight_FL, OUTPUT);
-  pinMode(NavLight_BR, OUTPUT);
-  pinMode(NavLight_BL, OUTPUT);
-}
-
 /**
  * @brief 更新 IMU 数据
  */
