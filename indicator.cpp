@@ -26,7 +26,7 @@ void update_indicator_light()
 
   set_nav_lights(indicator_state.count % 2);
   if(indicator_state.count != -1)
-    indicator_state.count++;
+    indicator_state.count--;
 }
 
 void set_indicator_light(ErrorCode code)
