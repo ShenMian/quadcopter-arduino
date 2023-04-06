@@ -53,8 +53,8 @@ enum Pin : uint8_t
   Motor_R = 9,
   Motor_L = 3,
   
-  RF24_CE = 8,
-  RF24_CS = 7,
+  RF24_CE  = 8,
+  RF24_CSN = 7,
 
   NavLight_FR = 10,
   NavLight_FL = 11,

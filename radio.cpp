@@ -1,6 +1,6 @@
 #include "radio.h"
 
-RF24 radio(RF24_CE, RF24_CS);
+RF24 radio(RF24_CE, RF24_CSN);
 
 void setup_radio(uint8_t channel)
 {
