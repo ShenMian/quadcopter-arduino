@@ -76,12 +76,20 @@ enum Motor : uint8_t
   L,      ///< 左
 };
 
-constexpr float pi         = 3.1415926535897932384626433832795;
-constexpr float deg_to_rad = pi / 180.f; ///< 角度制转弧度制
-constexpr float rad_to_deg = 180.f / pi; ///< 弧度制转角度制
+constexpr float pi = 3.1415926535897932384626433832795;
+
+/**
+ * @brief 角度制转弧度制
+ */
+constexpr float deg_to_rad(float deg) { return deg * pi / 180.f; }
+
+/**
+ * @brief 弧度制转角度制
+ */
+constexpr float rad_to_deg(float deg) { return deg * 180.f / pi; }
 
 constexpr float   dt              = 0.002;   ///< 时间变化量
 constexpr uint8_t radio_address[] = "00004";
 
-constexpr float max_angle         = 20.f * deg_to_rad; ///< 最大倾角, 弧度制
-constexpr float max_takeoff_angle = 5.f * deg_to_rad;  ///< 起飞时最大倾角, 弧度制
+constexpr float max_angle         = deg_to_rad(20.f); ///< 最大倾角, 弧度制
+constexpr float max_takeoff_angle = deg_to_rad(5.f);  ///< 起飞时最大倾角, 弧度制

@@ -1,13 +1,9 @@
 #include <SPI.h>
-#include <limits.h>
 
-#include "config.h"
-#include "indicator.h"
-#include "pid.h"
-#include "battery.h"
 #include "radio.h"
-#include "types.h"
+#include "indicator.h"
 #include "motors.h"
+#include "battery.h"
 
 #include "estimator.hpp"
 #include "controller.hpp"
@@ -19,7 +15,7 @@ void print_actual_angles()
 {
   Serial.print(F("Actual angles: "));
   for (int i = 0; i < 3; i++) {
-    Serial.print(estimator.get_angles().v[i] * rad_to_deg);
+    Serial.print(rad_to_deg(estimator.get_angles().v[i]));
     Serial.print(F(", "));
   }
   Serial.print(F("\n"));
