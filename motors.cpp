@@ -66,6 +66,8 @@ void update_motors(const EulerAngles& angles, float throttle)
 
   // TODO: 电压跌落补偿
 
+  // TODO: Servo 库默认的频率只有 50Hz
+
   // 假设 1000-1499 为逆时针旋转, 1501-2000 为顺时针旋转, 1500 为停止
 #if QUAD_TYPE == QUAD_X
   motors[FR].writeMicroseconds(constrain(1500 - (throttle * 400 + angles.pitch + angles.roll + angles.yaw), 1000, 1500));

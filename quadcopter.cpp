@@ -55,12 +55,12 @@ void setup()
 
   set_indicator_light(ErrorCode::Normal);
 
-  estimator.set_takeoff_altitude(estimator.get_altitude());
+  estimator.takeoff();
 }
 
 void loop()
 {
-  check_battery_level();
+  check_battery_level(Battery);
   // update_radio(target_angles, target_position, throttle);
   estimator.update();
 

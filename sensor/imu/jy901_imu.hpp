@@ -45,7 +45,7 @@ public:
              (float)JY901.stcGyro.w[2] / (SHRT_MAX + 1) }; // roll
   }
 
-  EulerAngles get_angles() const
+  EulerAngles get_angles() const override
   {
     return { (float)JY901.stcAngle.Angle[0] / (SHRT_MAX + 1),   // yaw
              (float)JY901.stcAngle.Angle[1] / (SHRT_MAX + 1),   // pitch

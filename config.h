@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Arduino.h>
 #include <stdint.h>
 
 #define QUAD_PLUS 0x01 ///< 十字形模式, QUAD +
@@ -53,11 +54,13 @@ enum Pin : uint8_t
   Motor_R = 9,
   Motor_L = 3,
   
-  RF24_CE  = 8,
-  RF24_CSN = 7,
+  RF24_CE  = 7,
+  RF24_CSN = 8,
 
   NavLight_Font = 2,
   NavLight_Back = 4,
+
+  Battery = A7,
 };
 
 /**

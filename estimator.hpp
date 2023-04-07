@@ -31,9 +31,11 @@ public:
   Vector3 get_position() const noexcept { return estimate_position; }
 
   /**
-  * @brief 设置起飞海拔
+  * @brief 起飞
+  *
+  * 设置起飞海拔.
   */
-  void set_takeoff_altitude(float altitude) noexcept { takeoff_altitude = altitude; }
+  void takeoff() noexcept { takeoff_altitude = get_altitude(); }
 
   /**
   * @brief 获取加速度
