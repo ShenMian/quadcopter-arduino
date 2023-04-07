@@ -91,8 +91,12 @@ constexpr float deg_to_rad(float deg) { return deg * pi / 180.f; }
  */
 constexpr float rad_to_deg(float deg) { return deg * 180.f / pi; }
 
-constexpr float   dt              = 0.002;   ///< 时间变化量
+constexpr float dt = 0.002;   ///< 时间变化量
+
 constexpr uint8_t radio_address[] = "00004";
 
 constexpr float max_angle         = deg_to_rad(20.f); ///< 最大倾角, 弧度制
 constexpr float max_takeoff_angle = deg_to_rad(5.f);  ///< 起飞时最大倾角, 弧度制
+
+constexpr float low_battery_level          = 30.f;
+constexpr float critical_low_battery_level = 20.f;

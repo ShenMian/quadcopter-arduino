@@ -14,8 +14,8 @@ void check_battery_level(uint8_t pin)
 {
   const auto level = get_battery_level(pin);
 
-  if(level < 20.f)
+  if(level < critical_low_battery_level)
     set_indicator_light(ErrorCode::CriticalLowBattery);
-  else if(level < 30.f)
+  else if(level < low_battery_level)
     set_indicator_light(ErrorCode::LowBattery);
 }
