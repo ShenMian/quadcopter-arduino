@@ -21,6 +21,16 @@ union Vector3
     return sqrt(x * x + y * y + z * z);
   }
 
+  Vector3 operator+(const Vector3& rhs) const noexcept
+  {
+    return Vector3(*this) += rhs;
+  }
+
+  Vector3 operator-(const Vector3& rhs) const noexcept
+  {
+    return Vector3(*this) -= rhs;
+  }
+
   Vector3 operator*(float scale) const noexcept
   {
     return Vector3(*this) *= scale;
@@ -35,6 +45,12 @@ union Vector3
   Vector3& operator+=(const Vector3& rhs) noexcept
   {
     x += rhs.x, y += rhs.y, z += rhs.z;
+    return *this;
+  }
+
+  Vector3& operator-=(const Vector3& rhs) noexcept
+  {
+    x -= rhs.x, y -= rhs.y, z -= rhs.z;
     return *this;
   }
 };

@@ -1,4 +1,5 @@
 #include <SPI.h>
+#include <stdint.h>
 
 #include "radio.h"
 #include "indicator.h"
@@ -10,6 +11,34 @@
 
 Estimator  estimator;
 Controller controller;
+
+#define MAX_WAYPOINT_HISTORIES 15
+
+Vector3 waypoint_histories[MAX_WAYPOINT_HISTORIES]; ///< 最短历史航点路径, 用于自动返航
+
+constexpr float waypoint_distance = 3.f; ///< 航点之间的最小距离, 超过距离才会记录航点
+
+void record_waypoint_histories()
+{
+  static uint8_t index = 0;
+  if(index == MAX_WAYPOINT_HISTORIES)
+    return; // 无法继续记录航点
+
+  const auto position = estimator.get_position();
+  if((waypoint_histories[index] - position).norm() <= waypoint_distance)
+    return;
+  
+  for(int16_t i = index - 1; i > 0; i--)
+  {
+    if((waypoint_histories[i] - position).norm() <= waypoint_distance)
+    {
+      index = i;
+      return;
+    }
+  }
+
+  waypoint_histories[index++] = position;
+}
 
 void print_actual_angles()
 {
@@ -61,9 +90,9 @@ void setup()
 void loop()
 {
   check_battery_level(Battery);
-  // update_radio(target_angles, target_position, throttle);
   estimator.update();
-
+  // record_waypoint_histories();
+  // update_radio(target_angles, target_position, throttle);
   update_indicator_light();
 
   // 调整到目标姿态
