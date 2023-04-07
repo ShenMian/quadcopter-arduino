@@ -68,18 +68,22 @@ void update_motors(const EulerAngles& angles, float throttle)
 
   // TODO: Servo 库默认的频率只有 50Hz
 
-  // 假设 1000-1499 为逆时针旋转, 1501-2000 为顺时针旋转, 1500 为停止
+  // 全部正转信号, 反接需要反转的电机
 #if QUAD_TYPE == QUAD_X
-  motors[FR].writeMicroseconds(constrain(1500 - (throttle * 400 + angles.pitch + angles.roll + angles.yaw), 1000, 1500));
-  motors[FL].writeMicroseconds(constrain(1500 + (throttle * 400 + angles.pitch - angles.roll - angles.yaw), 1000, 1500));
+  // 顺时针
+  motors[FR].writeMicroseconds(max(1500 + (throttle * 400 + angles.pitch + angles.roll + angles.yaw), 2000));
+  motors[FL].writeMicroseconds(max(1500 + (throttle * 400 + angles.pitch - angles.roll - angles.yaw), 2000));
   
-  motors[BR].writeMicroseconds(constrain(1500 + (throttle * 400 - angles.pitch + angles.roll - angles.yaw), 1000, 1500));
-  motors[BL].writeMicroseconds(constrain(1500 - (throttle * 400 - angles.pitch - angles.roll + angles.yaw), 1000, 1500));
+  // 逆时针
+  motors[BR].writeMicroseconds(max(1500 + (throttle * 400 - angles.pitch + angles.roll - angles.yaw), 2000));
+  motors[BL].writeMicroseconds(max(1500 + (throttle * 400 - angles.pitch - angles.roll + angles.yaw), 2000));
 #else
-  motors[F].writeMicroseconds(constrain(1500 + (throttle * 400 + angles.pitch - angles.yaw), 1500, 2000));
-  motors[B].writeMicroseconds(constrain(1500 + (throttle * 400 - angles.pitch - angles.yaw), 1500, 2000));
+  // 顺时针
+  motors[F].writeMicroseconds(max(1500 + (throttle * 400 + angles.pitch - angles.yaw), 2000));
+  motors[B].writeMicroseconds(max(1500 + (throttle * 400 - angles.pitch - angles.yaw), 2000));
   
-  motors[R].writeMicroseconds(constrain(1500 - (throttle * 400 + angles.roll + angles.yaw), 1000, 1500));
-  motors[L].writeMicroseconds(constrain(1500 - (throttle * 400 - angles.roll + angles.yaw), 1000, 1500));
+  // 逆时针
+  motors[R].writeMicroseconds(max(1500 + (throttle * 400 + angles.roll + angles.yaw), 2000));
+  motors[L].writeMicroseconds(max(1500 + (throttle * 400 - angles.roll + angles.yaw), 2000));
 #endif
 }
