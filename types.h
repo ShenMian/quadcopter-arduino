@@ -18,7 +18,12 @@ union Vector3
 
   float norm() const noexcept
   {
-    return sqrt(x * x + y * y + z * z);
+    return sqrt(norm_sq());
+  }
+
+  float norm_sq() const noexcept
+  {
+    return x * x + y * y + z * z;
   }
 
   Vector3 operator+(const Vector3& rhs) const noexcept
@@ -69,6 +74,9 @@ union EulerAngles
   float v[3];
 };
 
+/**
+ * @brief 四元数
+ */
 struct Quaternion
 {
   float x;
@@ -77,6 +85,9 @@ struct Quaternion
   float w;
 };
 
+/**
+ * @brief 欧拉角转四元数
+ */
 inline Quaternion ToQuaternion(const EulerAngles& angles)
 {
   const float cr = cos(angles.roll * 0.5);
@@ -95,6 +106,9 @@ inline Quaternion ToQuaternion(const EulerAngles& angles)
   return quat;
 }
 
+/**
+ * @brief 四元数转欧拉角
+ */
 inline EulerAngles ToEulerAngles(const Quaternion& quat)
 {
   EulerAngles angles;
