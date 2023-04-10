@@ -20,9 +20,9 @@ enum class ErrorCode
  */
 struct IndicatorState
 {
-  uint8_t timer;
-  uint8_t interval; ///< 闪烁间隔
-  int8_t  count;    ///< 闪烁次数
+  uint8_t  timer;
+  uint16_t interval; ///< 闪烁间隔
+  int8_t   count;    ///< 闪烁次数
 };
 
 extern IndicatorState indicator_state;
