@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../imu.hpp"
+#include "../../config.h"
 #include <JY901.h>
 
 /**
@@ -18,37 +19,25 @@
 class JY901_IMU : public IMU
 {
 public:
-  /**
-  * @brief 更新 JY901 数据
-  *
-  * 包含三轴加速度计, 三轴陀螺仪, 气压计等
-  */
-  /*
-  void update_jy901()
-  {
-    // TODO: 用途不明
-    while (Serial.available()) {
-      JY901.CopeSerialData(Serial.read()); // Call JY901 data cope function
-    }
-  }
-  */
-
   Vector3 get_acceleration() const override
   {
-    return {JY901.stcAcc.a[0], JY901.stcAcc.a[1], JY901.stcAcc.a[2]};
+    // JY901.GetAngle();
+    return {JY901.stcAcc.a[0] / (SHRT_MAX + 1) * 16.f,
+            JY901.stcAcc.a[1] / (SHRT_MAX + 1) * 16.f,
+            JY901.stcAcc.a[2] / (SHRT_MAX + 1) * 16.f};
   }
 
   EulerAngles get_angular_velocity() const override
   {
-    return { (float)JY901.stcGyro.w[0] / (SHRT_MAX + 1),   // yaw
-             (float)JY901.stcGyro.w[1] / (SHRT_MAX + 1),   // pitch
-             (float)JY901.stcGyro.w[2] / (SHRT_MAX + 1) }; // roll
+    return {(float)JY901.stcGyro.w[0] / (SHRT_MAX + 1) * 2000,  // yaw
+            (float)JY901.stcGyro.w[1] / (SHRT_MAX + 1) * 2000,  // pitch
+            (float)JY901.stcGyro.w[2] / (SHRT_MAX + 1) * 2000}; // roll
   }
 
   EulerAngles get_angles() const override
   {
-    return { (float)JY901.stcAngle.Angle[0] / (SHRT_MAX + 1),   // yaw
-             (float)JY901.stcAngle.Angle[1] / (SHRT_MAX + 1),   // pitch
-             (float)JY901.stcAngle.Angle[2] / (SHRT_MAX + 1) }; // roll
+    return {(float)JY901.stcAngle.Angle[0] / (SHRT_MAX + 1) / pi,  // yaw
+            (float)JY901.stcAngle.Angle[1] / (SHRT_MAX + 1) / pi,  // pitch
+            (float)JY901.stcAngle.Angle[2] / (SHRT_MAX + 1) / pi}; // roll
   }
 };

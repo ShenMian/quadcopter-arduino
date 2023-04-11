@@ -38,6 +38,7 @@ void record_waypoint_histories()
   }
 
   waypoint_histories[index++] = position;
+  Serial.println("Add new waypoint");
 }
 
 void print_actual_angles()
@@ -65,41 +66,63 @@ void print_actual_position()
 
 void setup()
 {
-  Serial.begin(115200);
+  Serial.begin(115200); // JY901 Serial 通讯频率
   while(!Serial);
 
-  setup_nav_lights();
-  setup_radio(100);
+  // setup_nav_lights();
+  // setup_radio(100);
   setup_motors();
 
   indicator_state = {};
 
   // 等待倾角小于起飞时最大倾角
+  /*
   do {
     estimator.update();
   } while(abs(estimator.get_angles().pitch) > max_takeoff_angle || abs(estimator.get_angles().pitch) > max_takeoff_angle);
+  */
 
   controller.set_target_angles({estimator.get_angles().yaw, 0, 0});
   controller.set_target_position({0, 0, 1});
 
-  set_indicator_light(ErrorCode::Normal);
+  // set_indicator_light(ErrorCode::Normal);
 
   estimator.takeoff();
 }
 
 void loop()
 {
-  check_battery_level(Battery);
+  // check_battery_level(Battery);
   estimator.update();
-  // record_waypoint_histories();
-  // update_radio(target_angles, target_position, throttle);
-  update_indicator_light();
+  record_waypoint_histories();
+  // update_indicator_light();
 
   // 调整到目标姿态
   if(abs(estimator.get_angles().pitch) > max_angle || abs(estimator.get_angles().roll) > max_angle)
   {
     // TODO: 倾角过大
   }
+  
+  /*
+  float       throttle;
+  EulerAngles target_angles;
+  Vector3     target_position;
+  update_radio(target_angles, target_position, throttle);
+  controller.set_target_angles(target_angles);
+  controller.set_target_position(target_position);
+  controller.set_throttle(throttle);
+  */
 
   controller.update(estimator);
+}
+
+/**
+ * @brief 更新 JY901 数据
+ */
+void serialEvent()
+{
+  // TODO: 新板子将使用 IIC 与 JY901 通讯
+  while (Serial.available()) {
+    JY901.CopeSerialData(Serial.read()); // Call JY901 data cope function
+  }
 }

@@ -10,6 +10,7 @@ enum class ErrorCode
 {
   Normal,             ///< 正常
   RadioDisconnected,  ///< 无线电信号中断
+  NoGPS,              ///< 无 GPS 信号
   LowBattery,         ///< 低电量
   CriticalLowBattery, ///< 严重低电量
   Unknown,            ///< 未知错误

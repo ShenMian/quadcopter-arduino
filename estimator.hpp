@@ -1,9 +1,10 @@
 #pragma once
 
 #include <limits.h>
-#include "types.h"
+#include "math.h"
 
 #include "sensor/imu/jy901_imu.hpp"
+#include "sensor/imu/mpu6050.hpp"
 #include "sensor/barometer/jy901_barometer.hpp"
 
 /**
@@ -21,53 +22,52 @@ public:
   }
 
   /**
-  * @brief 获取估计姿态角
-  */
+   * @brief 获取估计姿态角
+   */
   EulerAngles get_angles() const noexcept { return estimate_angles; }
 
   /**
-  * @brief 获取估计位置
-  */
+   * @brief 获取估计位置
+   */
   Vector3 get_position() const noexcept { return estimate_position; }
 
   /**
-  * @brief 起飞
-  *
-  * 设置起飞海拔.
-  */
+   * @brief 起飞
+   *
+   * 设置起飞海拔.
+   */
   void takeoff() noexcept { takeoff_altitude = get_altitude(); }
 
   /**
-  * @brief 获取加速度
-  */
+   * @brief 获取加速度
+   */
   Vector3 get_acceleration() const { return imu.get_acceleration(); }
 
   /**
-  * @brief 获取角速度
-  */
+   * @brief 获取角速度
+   */
   EulerAngles get_angular_velocity() const { return imu.get_angular_velocity(); }
 
   /**
-  * @brief 获取气压计测量海拔
-  */
+   * @brief 获取气压计测量海拔
+   */
   long get_altitude() const noexcept { return barometer.get_altitude(); }
 
 private:
   /**
-  * @brief 更新坐标和速度
-  */
+   * @brief 更新坐标和速度
+   */
   void update_position()
   {
     const Vector3 acceleration = get_acceleration();
     estimate_velocity += acceleration * dt;
     estimate_position += estimate_velocity * dt;
-
     estimate_position.z = get_altitude() - takeoff_altitude;
   }
 
   /**
-  * @brief 更新姿态角
-  */
+   * @brief 更新姿态角
+   */
   void update_angles()
   {
     estimate_angles = imu.get_angles();

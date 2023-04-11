@@ -69,21 +69,39 @@ void update_motors(const EulerAngles& angles, float throttle)
   // TODO: Servo 库默认的频率只有 50Hz
 
   // 全部正转信号, 反接需要反转的电机
+  // 大概 1540 开始正常转
+  /*
 #if QUAD_TYPE == QUAD_X
+  const int value = (throttle - 0.f < __FLT_EPSILON__ ? 1500 : 1540) + throttle * (500 - 100 - 40);
   // 顺时针
-  motors[FR].writeMicroseconds(max(1500 + (throttle * 400 + angles.pitch + angles.roll + angles.yaw), 2000));
-  motors[FL].writeMicroseconds(max(1500 + (throttle * 400 + angles.pitch - angles.roll - angles.yaw), 2000));
+  motors[FR].writeMicroseconds(min(value + angles.pitch + angles.roll + angles.yaw, 2000));
+  motors[FL].writeMicroseconds(min(value + angles.pitch - angles.roll - angles.yaw, 2000));
   
   // 逆时针
-  motors[BR].writeMicroseconds(max(1500 + (throttle * 400 - angles.pitch + angles.roll - angles.yaw), 2000));
-  motors[BL].writeMicroseconds(max(1500 + (throttle * 400 - angles.pitch - angles.roll + angles.yaw), 2000));
+  motors[BR].writeMicroseconds(min(value - angles.pitch + angles.roll - angles.yaw, 2000));
+  motors[BL].writeMicroseconds(min(value - angles.pitch - angles.roll + angles.yaw, 2000));
 #else
   // 顺时针
-  motors[F].writeMicroseconds(max(1500 + (throttle * 400 + angles.pitch - angles.yaw), 2000));
-  motors[B].writeMicroseconds(max(1500 + (throttle * 400 - angles.pitch - angles.yaw), 2000));
+  motors[F].writeMicroseconds(min(value + angles.pitch - angles.yaw, 2000));
+  motors[B].writeMicroseconds(min(value - angles.pitch - angles.yaw), 2000));
   
   // 逆时针
-  motors[R].writeMicroseconds(max(1500 + (throttle * 400 + angles.roll + angles.yaw), 2000));
-  motors[L].writeMicroseconds(max(1500 + (throttle * 400 - angles.roll + angles.yaw), 2000));
+  motors[R].writeMicroseconds(min(1540 + (value + angles.roll + angles.yaw, 2000));
+  motors[L].writeMicroseconds(min(1540 + (value - angles.roll + angles.yaw, 2000));
 #endif
+  */
+  
+  /*
+  Serial.print("throttle: ");
+  Serial.println(throttle);
+  Serial.print("front right: ");
+  Serial.print(min(value + angles.pitch + angles.roll + angles.yaw, 2000));
+  Serial.print(", front left: ");
+  Serial.print(min(value + angles.pitch - angles.roll - angles.yaw, 2000));
+  Serial.print(", back right: ");
+  Serial.print(min(value - angles.pitch + angles.roll - angles.yaw, 2000));
+  Serial.print(", back left: ");
+  Serial.print(min(value - angles.pitch - angles.roll + angles.yaw, 2000));
+  Serial.println();
+  */
 }

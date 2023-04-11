@@ -1,7 +1,7 @@
 #pragma once
 
 #include "config.h"
-#include "types.h"
+#include "math.h"
 #include <RF24.h>
 #include <nRF24L01.h>
 

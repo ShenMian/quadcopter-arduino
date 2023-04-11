@@ -1,7 +1,7 @@
 #pragma once
 
 #include "config.h"
-#include "types.h"
+#include "math.h"
 #include "indicator.h"
 #include <Servo.h>
 

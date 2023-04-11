@@ -53,6 +53,7 @@ void set_indicator_light(ErrorCode code)
       indicator_state.interval = 200;
       break;
 
+    case ErrorCode::NoGPS:
     case ErrorCode::Unknown:
       indicator_state.count    = 5 * 2;
       indicator_state.interval = 500;

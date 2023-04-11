@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdint.h>
-#include "types.h"
+#include "math.h"
 #include "estimator.hpp"
 #include "pid.hpp"
 
@@ -32,8 +32,8 @@ enum Mode : uint8_t
   X_Hold = 1 << 4,
   Y_Hold = 1 << 5,
 
-  Altitude_Hold = Z_Hold,                   ///< 定高
-  Position_Hold = X_Hold | Y_Hold | Z_Hold, ///< 定点
+  Altitude_Hold = Yaw_Hold | Pitch_Hold | Roll_Hold | Z_Hold,                   ///< 定高
+  Position_Hold = Yaw_Hold | Pitch_Hold | Roll_Hold | X_Hold | Y_Hold | Z_Hold, ///< 定点
 };
 
 /**
@@ -56,6 +56,7 @@ public:
     if(mode & Mode::Roll_Hold)
       actuator_angles.roll = angle_pid[2].pid(target_angles.roll, estimator.get_angles().roll, dt);
       
+    /*
     if(mode & Mode::X_Hold)
       target_angles.pitch -= position_states[0].pid(target_position.x, estimator.get_position().x, dt);
     
@@ -70,34 +71,47 @@ public:
     target_angles.pitch = constrain(target_angles.pitch, -max_angle, max_angle);
     target_angles.roll  = constrain(target_angles.roll, -max_angle, max_angle);
 
+    // TODO
+    constexpr float factor = 100.f;
+    for(int i = 0; i < 3; i++)
+      actuator_angles.v[i] *= factor;
+
     update_motors(actuator_angles, throttle);
   }
 
   /**
-  * @brief 设置目标姿态角
-  */
-  void set_target_angles(const EulerAngles& angles) noexcept { target_angles = angles; }
-  
+   * @brief 设置节流阀
+   */
+  void set_throttle(float throttle)
+  {
+    this->throttle = throttle;
+  }
+
   /**
-  * @brief 设置目标位置
-  */
+   * @brief 设置目标姿态角
+   */
+  void set_target_angles(const EulerAngles& angles) noexcept { target_angles = angles; }
+
+  /**
+   * @brief 设置目标位置
+   */
   void set_target_position(const Vector3& position) noexcept { target_position = position; }
 
   /**
-  * @brief 获取目标姿态角
-  */
+   * @brief 获取目标姿态角
+   */
   EulerAngles get_target_angles() const noexcept { return target_angles; }
 
   /**
-  * @brief 获取目标位置
-  */
+   * @brief 获取目标位置
+   */
   Vector3 get_target_position() const noexcept { return target_position; }
 
 private:
   Vector3     target_position = {};  // 目标坐标
   EulerAngles target_angles   = {};  // 目标姿态角
 
-  float throttle = 0.0f;  // 节流阀
+  float throttle = 0.0f; // 节流阀
 
   Mode mode = Mode::Altitude_Hold;
 };
