@@ -2,7 +2,6 @@
 
 #include "config.h"
 #include "math.h"
-#include "indicator.h"
 #include <Servo.h>
 
 extern Servo motors[4];
@@ -12,4 +11,4 @@ extern Servo motors[4];
  */
 void setup_motors();
 
-void update_motors(const EulerAngles& angles, float throttle);
+void update_motors(EulerAngles angles, float throttle);

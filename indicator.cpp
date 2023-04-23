@@ -53,10 +53,20 @@ void set_indicator_light(ErrorCode code)
       indicator_state.interval = 200;
       break;
 
+    case ErrorCode::SelfTestFailed:
     case ErrorCode::NoGPS:
     case ErrorCode::Unknown:
       indicator_state.count    = 5 * 2;
       indicator_state.interval = 500;
       break;
   }
+}
+
+void stop_with_error(ErrorCode code)
+{
+    while(true)
+    {
+      set_indicator_light(code);
+      delay(100);
+    }
 }
