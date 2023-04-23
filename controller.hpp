@@ -46,6 +46,7 @@ class Controller
 public:
   void update(const Estimator& estimator)
   {
+    // 姿态控制器
     EulerAngles actuator_angles; // 姿态控制量
     if(mode & Mode::Yaw_Hold)
       actuator_angles.yaw = angle_pid[0].pid(target_angles.yaw, estimator.get_angles().yaw, dt);
@@ -56,6 +57,7 @@ public:
     if(mode & Mode::Roll_Hold)
       actuator_angles.roll = angle_pid[2].pid(target_angles.roll, estimator.get_angles().roll, dt);
       
+    // 位置控制器
     /*
     if(mode & Mode::X_Hold)
       target_angles.pitch -= position_states[0].pid(target_position.x, estimator.get_position().x, dt);
@@ -75,6 +77,8 @@ public:
     constexpr float factor = 100.f;
     for(int i = 0; i < 3; i++)
       actuator_angles.v[i] *= factor;
+
+    // TODO: 将 PID 的返回值映射到 [0, 1]
 
     update_motors(actuator_angles, throttle);
   }
