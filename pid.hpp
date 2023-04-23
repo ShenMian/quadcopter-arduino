@@ -1,5 +1,7 @@
 #pragma once
 
+#include <float.h>
+
 class PID
 {
 public:
@@ -12,8 +14,8 @@ public:
   /**
   * @brief PID 控制器
   *
-  * @param target 设定点(setpoint)
-  * @param actual 测量的过程值(process variable)
+  * @param target 设定点
+  * @param actual 测量的过程值
   * @param dt     时间变化量
   */
   float pid(float target, float actual, float dt)
@@ -25,10 +27,25 @@ public:
     integral_    += kI * error * dt;
     const float d = kD * (error - prev_error_) / dt;
 
+    integral_ = constrain(integral_, -max_integral_abs_, max_integral_abs_);
+
     return p + integral_ + d;
   }
 
+  /**
+  * @brief 设置积分项绝对最大值, 避免积分饱和
+  *
+  * @param max_abs 积分项绝对最大值
+  */
+  void set_max_integral(float max_abs)
+  {
+    if(max_abs < 0)
+      abort();
+    max_integral_abs_ = max_abs;
+  }
+
 private:
-  float integral_ = 0.f; ///< 积分
-  float prev_error_;     ///< 上一次误差
+  float integral_         = 0.f;     ///< 积分
+  float max_integral_abs_ = FLT_MAX; ///< 积分最大值
+  float prev_error_;                 ///< 上一次误差
 };
