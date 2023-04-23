@@ -3,9 +3,13 @@
 #include <limits.h>
 #include "math.h"
 
-#include "sensor/imu/jy901_imu.hpp"
 #include "sensor/imu/mpu6050.hpp"
 #include "sensor/barometer/jy901_barometer.hpp"
+
+#include <Kalman.h>
+
+Kalman pitchKalmanFilter;
+Kalman rollKalmanFilter;
 
 /**
  * @brief 位置和姿态估计器
@@ -70,12 +74,22 @@ private:
    */
   void update_angles()
   {
-    estimate_angles = imu.get_angles();
-    /*
+    const auto acc  = get_acceleration();
+    const auto gyro = get_angular_velocity();
+
+    const float roll  = rad_to_deg(atan2(acc.y, acc.z));
+    const float pitch = rad_to_deg(atan2(-acc.x, sqrt(acc.y * acc.y + acc.z * acc.z)));
+
+    estimate_angles.pitch = pitchKalmanFilter.getAngle(pitch, gyro.pitch, dt);
+    estimate_angles.roll  = rollKalmanFilter.getAngle(roll, gyro.roll, dt);
+
+    /* 对角速度进行积分得到角度
     const EulerAngles angular_velocity = get_angular_velocity();
     for(int i = 0; i < 3; i++)
       estimate_angles.v[i] += angular_velocity.v[i] * dt;
     */
+
+    // JY901: estimate_angles = imu.get_angles();
   }
 
   // ZYX 欧拉角, 弧度制
@@ -87,6 +101,6 @@ private:
   
   long takeoff_altitude; // 起飞时海拔, 用于计算相对海拔
   
-  JY901_IMU       imu;
+  MPU6050         imu;
   JY901_Barometer barometer;
 };
