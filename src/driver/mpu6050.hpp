@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../accelerometer.hpp"
-#include "../gyroscope.hpp"
-#include "../temperature.hpp"
+#include "../sensor/accelerometer.hpp"
+#include "../sensor/gyroscope.hpp"
+#include "../sensor/temperature.hpp"
 #include <Adafruit_MPU6050.h>
 
 /**

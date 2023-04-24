@@ -1,12 +1,11 @@
-#include "motor.hpp"
 #include "pid.hpp"
 #include "math.hpp"
-#include "battery.hpp"
 #include "rotor.hpp"
 
 #include "evaluator.hpp"
 #include "controller.hpp"
 
+#include "sensor/battery.hpp"
 #include "driver/dc_motor.hpp"
 
 #include <Arduino.h>

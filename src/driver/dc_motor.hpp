@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../motor.hpp"
+#include "../actuator/motor.hpp"
 #include <Arduino.h>
 #include <stdint.h>
 

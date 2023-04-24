@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../barometer.hpp"
-#include "../temperature.hpp"
+#include "../sensor/barometer.hpp"
+#include "../sensor/temperature.hpp"
 #include <Adafruit_BMP280.h>
 
 /**
