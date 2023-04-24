@@ -11,10 +11,13 @@
 #include <Arduino.h>
 #include <Kalman.h>
 
-class Evaluator
+/**
+ * @brief 位置和姿态评估器
+ */
+class Estimator
 {
 public:
-  Evaluator()
+  Estimator()
   {
     accelerometer_ = static_cast<Accelerometer*>(&mpu_);
     gyroscope_     = static_cast<Gyroscope*>(&mpu_);
