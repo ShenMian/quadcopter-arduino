@@ -1,9 +1,9 @@
 #pragma once
 
 #include "math.hpp"
-#include "accelerometer.hpp"
-#include "gyroscope.hpp"
-#include "barometer.hpp"
+#include "sensor/accelerometer.hpp"
+#include "sensor/gyroscope.hpp"
+#include "sensor/barometer.hpp"
 
 #include "driver/mpu6050.hpp"
 #include "driver/bmp280.hpp"

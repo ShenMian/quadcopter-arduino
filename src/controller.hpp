@@ -1,8 +1,8 @@
 #pragma once
 
-#include "evaluator.hpp"
+#include "estimator.hpp"
 #include "pid.hpp"
-#include "motor.hpp"
+#include "rotor.hpp"
 
 class Controller
 {
@@ -21,9 +21,9 @@ public:
 	 * @param evaluator 评估器
 	 * @param dt        时间变化量
 	 */
-	void update(Evaluator& evaluator, float dt)
+	void update(Estimator& estimator, float dt)
 	{
-		const auto angles = evaluator.get_angles();
+		const auto angles = estimator.get_angles();
 
 		EulerAngles output_angles;
 		output_angles.yaw   = yaw_pid_.pid(target_angles_.yaw, angles.yaw, dt);

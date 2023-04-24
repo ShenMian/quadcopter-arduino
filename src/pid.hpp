@@ -1,6 +1,7 @@
 #pragma once
 
 #include "utility.hpp"
+#include <Arduino.h>
 #include <float.h>
 
 /**

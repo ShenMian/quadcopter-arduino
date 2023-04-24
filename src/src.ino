@@ -22,14 +22,15 @@ enum Pin : uint8_t
 
 DCMotor motors[4] = {Pin::motor_front_right, Pin::motor_front_left, Pin::motor_back_right, Pin::motor_back_left};
 
+constexpr float scale = 0.70710678118654752440084436210485f; ///< cos(45°)
 Rotor rotors[4] = {
-  {&motors[0], -1.0, -0.70710678118654752440084436210485f, -0.70710678118654752440084436210485f},
-  {&motors[1],  1.0, -0.70710678118654752440084436210485f,  0.70710678118654752440084436210485f},
-  {&motors[2],  1.0,  0.70710678118654752440084436210485f, -0.70710678118654752440084436210485f},
-  {&motors[3], -1.0,  0.70710678118654752440084436210485f,  0.70710678118654752440084436210485f},
+  {&motors[0], -1.0, -scale, -scale},
+  {&motors[1],  1.0, -scale,  scale},
+  {&motors[2],  1.0,  scale, -scale},
+  {&motors[3], -1.0,  scale,  scale},
 };
 
-Evaluator  evaluator;
+Estimator  estimator;
 Battery    battery(Pin::battery_);
 Controller controller(rotors, 4);
 
@@ -46,7 +47,7 @@ void loop()
     const float dt            = (curr_timepoint - prev_timepoint) * 1000.f;
     prev_timepoint            = curr_timepoint;
 
-    evaluator.update(dt);
-    controller.update(evaluator, dt);
+    estimator.update(dt);
+    controller.update(estimator, dt);
   }
 }

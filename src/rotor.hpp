@@ -1,6 +1,6 @@
 #pragma once
 
-#include "motor.hpp"
+#include "actuator/motor.hpp"
 
 /**
  * @brief 转子. 包含电机和电机在调整姿态时的缩放参数

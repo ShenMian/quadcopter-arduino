@@ -1,6 +1,6 @@
 #pragma once
 
-#include "math.hpp"
+#include "../math.hpp"
 
 /**
  * @brief 陀螺仪
