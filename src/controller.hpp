@@ -32,9 +32,10 @@ public:
 
 		for(uint8_t i = 0; i < rotor_count_; i++)
 		{
-			rotors_[i].motor->set_speed(target_throttle_ + output_angles.yaw * rotors_[i].yaw_scale +
-			                            output_angles.pitch * rotors_[i].pitch_scale +
-			                            output_angles.roll * rotors_[i].roll_scale);
+			rotors_[i].motor->set_speed((target_throttle_ + output_angles.yaw * rotors_[i].yaw_scale +
+			                                                output_angles.pitch * rotors_[i].pitch_scale +
+			                                                output_angles.roll * rotors_[i].roll_scale) *
+			                                                   rotors_[i].scale);
 		}
 	}
 
