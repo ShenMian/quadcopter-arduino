@@ -22,7 +22,8 @@ enum Pin : uint8_t
 
 DCMotor motors[4] = {Pin::motor_front_right, Pin::motor_front_left, Pin::motor_back_right, Pin::motor_back_left};
 
-constexpr float scale = 0.70710678118654752440084436210485f; ///< cos(45°)
+// constexpr float scale = 0.70710678118654752440084436210485f; ///< cos(45°)
+constexpr float scale = 1.f;
 Rotor rotors[4] = {
   {&motors[0], -1.0, -scale, -scale},
   {&motors[1],  1.0, -scale,  scale},
@@ -31,7 +32,7 @@ Rotor rotors[4] = {
 };
 
 Estimator  estimator;
-Battery    battery(Pin::battery_);
+Battery    battery(Pin::battery_, 3.2f, 4.2f, 10, 10);
 Controller controller(rotors, 4);
 
 void setup()
