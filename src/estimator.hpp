@@ -4,6 +4,7 @@
 #include "sensor/accelerometer.hpp"
 #include "sensor/gyroscope.hpp"
 #include "sensor/barometer.hpp"
+#include "sensor/temperature.hpp"
 
 #include "driver/mpu6050.hpp"
 #include "driver/bmp280.hpp"
@@ -22,6 +23,7 @@ public:
     accelerometer_ = static_cast<Accelerometer*>(&mpu_);
     gyroscope_     = static_cast<Gyroscope*>(&mpu_);
     barometer_     = static_cast<Barometer*>(&bmp_);
+    temperature_   = static_cast<Temperature*>(&bmp_);
   }
 
   /**
@@ -60,11 +62,23 @@ public:
   Vector3     get_acceleration() const { return accelerometer_->get_acceleration(); };
   EulerAngles get_angular_velocity() const { return gyroscope_->get_angular_velocity(); };
   float       get_altitude() const { return barometer_->get_altitude(); }
+  float       get_pressure() const { return barometer_->get_pressure(); }
+  float       get_temperature() const { return temperature_->get_temperature(); }
 
-  private:
+  /**
+   * @brief 获取空气密度, 单位 kg/m³
+   */
+  float get_air_density() const
+  {
+    constexpr float std_pressure = 1.293f; // 标准大气压
+    return 273.f * get_pressure() * std_pressure / 101325.f * (273.f + get_temperature());
+  }
+
+private:
   Accelerometer* accelerometer_;
   Gyroscope*     gyroscope_;
   Barometer*     barometer_;
+  Temperature*   temperature_;
 
   float       takeoff_altitude_;
   Vector3     velocity_;
