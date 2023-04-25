@@ -21,9 +21,10 @@ void loop()
   delay(5000);
   for(uint8_t i = 0; i < ARRAY_SIZE(motors); i++)
   {
+    motors[i].arm();
     motors[i].set_speed(0.2f);
     delay(100);
-    motors[i].set_speed(0.f);
+    motors[i].disarm();
     delay(1000);
   }
   abort();

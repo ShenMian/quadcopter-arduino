@@ -18,14 +18,6 @@ public:
 		attach(pin);
 	}
 
-	void set_speed(float speed) override
-	{
-		if(speed < 0.f || speed > 1.f)
-			abort();
-
-		servo_.writeMicroseconds(map(speed, 0.f, 1.f, 1500, 2000));
-	}
-
 	void attach(uint8_t pin) override
 	{
 		if(servo_.attach(pin) == INVALID_SERVO)
@@ -33,5 +25,7 @@ public:
 	}
 
 private:
+	void set_speed_(float speed) override { servo_.writeMicroseconds(map(speed, 0.f, 1.f, 1500, 2000)); }
+
 	Servo servo_;
 };
