@@ -1,6 +1,6 @@
-#include "evaluator.hpp"
+#include "estimator.hpp"
 
-Evaluator  evaluator;
+Estimator  estimator;
 
 void setup()
 {
@@ -8,9 +8,9 @@ void setup()
 
 void loop()
 {
-  evaluator.update(dt);
+  estimator.update(dt);
 
-  const auto angles = evaluator.get_angles();
+  const auto angles = estimator.get_angles();
 
   Serial.print("$");
   Serial.print(angles.yaw);
