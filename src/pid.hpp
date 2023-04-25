@@ -10,10 +10,10 @@
 class PID
 {
 public:
-  float kP, kI, kD; ///< PID 参数
+  float kp, ki, kd; ///< PID 参数
 
-  PID(float kP, float kI, float kD)
-    : kP(kP), kI(kI), kD(kD)
+  PID(float kp, float ki, float kd)
+    : kp(kp), ki(ki), kd(kd)
   {}
 
   /**
@@ -28,11 +28,11 @@ public:
     const float error = target - actual;
     prev_error_ = error;
 
-    const float p = kP * error;
-    integral_    += kI * error * dt;
-    const float d = kD * (error - prev_error_) / dt;
+    const float p = kp * error;
+    integral_    += ki * error * dt;
+    const float d = kd * (error - prev_error_) / dt;
 
-    integral_ = clamp(integral_, -max_integral_abs_, max_integral_abs_);
+    integral_ = clamp(integral_, -integral_limit_, integral_limit_);
 
     return p + integral_ + d;
   }
@@ -42,15 +42,10 @@ public:
   *
   * @param max_abs 积分项绝对最大值
   */
-  void set_max_integral(float max_abs)
-  {
-    if(max_abs < 0)
-      abort();
-    max_integral_abs_ = max_abs;
-  }
+  void set_integral_limit(float limit) { integral_limit_ = abs(limit); }
 
 private:
-  float integral_         = 0.f;     ///< 积分
-  float max_integral_abs_ = FLT_MAX; ///< 积分最大值
-  float prev_error_;                 ///< 上一次误差
+  float integral_       = 0.f;     ///< 积分
+  float integral_limit_ = FLT_MAX; ///< 积分最大值
+  float prev_error_;               ///< 上一次误差
 };
