@@ -89,6 +89,17 @@ union EulerAngles
     float roll;
   };
   float v[3];
+  
+  EulerAngles operator-(const EulerAngles& rhs) const noexcept
+  {
+    return EulerAngles(*this) -= rhs;
+  }
+
+  EulerAngles& operator-=(const EulerAngles& rhs) noexcept
+  {
+    yaw -= rhs.yaw, pitch -= rhs.pitch, roll -= rhs.roll;
+    return *this;
+  }
 };
 
 /**

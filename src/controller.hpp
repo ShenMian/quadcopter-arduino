@@ -17,7 +17,7 @@ public:
 
 	/**
 	 * @brief 更新电机转速
-	 * 
+	 *
 	 * @param evaluator 评估器
 	 * @param dt        时间变化量
 	 */
@@ -26,16 +26,22 @@ public:
 		const auto angles = estimator.get_angles();
 
 		EulerAngles output_angles;
-		output_angles.yaw   = yaw_pid_.pid(target_angles_.yaw, angles.yaw, dt);
-		output_angles.pitch = pitch_pid_.pid(target_angles_.pitch, angles.pitch, dt);
-		output_angles.roll  = roll_pid_.pid(target_angles_.roll, angles.roll, dt);
+		output_angles.yaw   = angle_yaw_pid_.pid(target_angles_.yaw, angles.yaw, dt);
+		output_angles.pitch = angle_pitch_pid_.pid(target_angles_.pitch, angles.pitch, dt);
+		output_angles.roll  = angle_roll_pid_.pid(target_angles_.roll, angles.roll, dt);
+
+		const auto  angular_velocity = estimator.get_angular_velocity();
+		EulerAngles output_angular;
+		output_angular.yaw   = angular_yaw_pid_.pid(output_angles.yaw, angular_velocity.yaw, dt);
+		output_angular.pitch = angular_pitch_pid_.pid(output_angles.pitch, angular_velocity.pitch, dt);
+		output_angular.roll  = angular_roll_pid_.pid(output_angles.roll, angular_velocity.roll, dt);
 
 		for(uint8_t i = 0; i < rotor_count_; i++)
 		{
-			rotors_[i].motor->set_speed((target_throttle_ + output_angles.yaw * rotors_[i].yaw_scale +
-			                                                output_angles.pitch * rotors_[i].pitch_scale +
-			                                                output_angles.roll * rotors_[i].roll_scale) *
-			                                                   rotors_[i].scale);
+			rotors_[i].motor->set_speed((target_throttle_ + output_angular.yaw * rotors_[i].yaw_scale +
+			                             output_angular.pitch * rotors_[i].pitch_scale +
+			                             output_angular.roll * rotors_[i].roll_scale) *
+			                            rotors_[i].scale);
 		}
 	}
 
@@ -65,9 +71,12 @@ private:
 	Rotor*  rotors_;
 	uint8_t rotor_count_;
 
-	PID yaw_pid_{4.0, 0.02, 0};
-	PID pitch_pid_{1.3, 0.04, 18};
-	PID roll_pid_{1.3, 0.04, 18};
+	PID angle_yaw_pid_{4.0, 0.02, 0};
+	PID angle_pitch_pid_{1.3, 0.04, 18};
+	PID angle_roll_pid_{1.3, 0.04, 18};
+	PID angular_yaw_pid_{1.0, 0.0, 0.0};
+	PID angular_pitch_pid_{1.0, 0.0, 0.0};
+	PID angular_roll_pid_{1.0, 0.0, 0.0};
 
 	float max_pitch_angle_ = deg_to_rad(30);
 	float max_roll_angle_  = deg_to_rad(30);
