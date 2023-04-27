@@ -3,6 +3,7 @@
 #include "estimator.hpp"
 #include "pid.hpp"
 #include "rotor.hpp"
+#include "utility.hpp"
 
 class Controller
 {
@@ -53,16 +54,16 @@ public:
 	void set_target_angles(const EulerAngles& angles) noexcept
 	{
 		target_angles_       = angles;
-		target_angles_.pitch = constrain(angles.pitch, -max_pitch_angle_, max_pitch_angle_);
-		target_angles_.roll  = constrain(angles.roll, -max_roll_angle_, max_roll_angle_);
+		target_angles_.pitch = clamp(angles.pitch, -max_pitch_angle_, max_pitch_angle_);
+		target_angles_.roll  = clamp(angles.roll, -max_roll_angle_, max_roll_angle_);
 	}
 
 	/**
 	 * @brief 设置目标节流阀
 	 *
-	 * @param target_throttle 目标节流阀
+	 * @param target_throttle 目标节流阀, 范围 [0, 1]
 	 */
-	void set_throttle(float throttle) { target_throttle_ = throttle; }
+	void set_throttle(float throttle) { target_throttle_ = clamp(throttle, 0.f, 1.f); }
 
 private:
 	float       target_throttle_;
