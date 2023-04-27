@@ -25,10 +25,10 @@ DCMotor motors[4] = {Pin::motor_front_right, Pin::motor_front_left, Pin::motor_b
 // constexpr float scale = 0.70710678118654752440084436210485f; ///< cos(45°)
 constexpr float scale     = 1.f;
 Rotor           rotors[4] = {
-    {&motors[0], -1.0, -scale, -scale},
-    {&motors[1],  1.0, -scale,  scale},
-    {&motors[2],  1.0,  scale, -scale},
-    {&motors[3], -1.0,  scale,  scale},
+    {motors[0], -1.0, -scale, -scale},
+    {motors[1],  1.0, -scale,  scale},
+    {motors[2],  1.0,  scale, -scale},
+    {motors[3], -1.0,  scale,  scale},
 };
 
 Estimator  estimator;

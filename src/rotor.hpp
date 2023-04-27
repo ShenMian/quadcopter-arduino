@@ -7,15 +7,14 @@
  */
 struct Rotor
 {
-	Rotor(Motor* motor, float yaw_scale, float pitch_scale, float roll_scale)
+	Rotor(Motor& motor, float yaw_scale, float pitch_scale, float roll_scale)
 	    : motor(motor), yaw_scale(yaw_scale), pitch_scale(pitch_scale), roll_scale(roll_scale)
 	{
 	}
 
-	Motor* motor;
-
-	float yaw_scale;
-	float pitch_scale;
-	float roll_scale;
-	float scale = 1.f;
+	Motor& motor;
+	float  yaw_scale;
+	float  pitch_scale;
+	float  roll_scale;
+	float  scale = 1.f;
 };

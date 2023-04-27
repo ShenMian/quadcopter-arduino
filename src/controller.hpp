@@ -39,10 +39,11 @@ public:
 
 		for(uint8_t i = 0; i < rotor_count_; i++)
 		{
-			rotors_[i].motor->set_speed((target_throttle_ + output_angular.yaw * rotors_[i].yaw_scale +
-			                             output_angular.pitch * rotors_[i].pitch_scale +
-			                             output_angular.roll * rotors_[i].roll_scale) *
-			                            rotors_[i].scale);
+			float speed = target_throttle_ + (output_angular.yaw * rotors_[i].yaw_scale) +
+			              (output_angular.pitch * rotors_[i].pitch_scale) +
+			              (output_angular.roll * rotors_[i].roll_scale);
+			speed *= rotors_[i].scale;
+			rotors_[i].motor.set_speed(speed);
 		}
 	}
 
