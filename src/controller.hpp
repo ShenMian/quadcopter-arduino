@@ -10,7 +10,7 @@ class Controller
 public:
 	/**
 	 * @brief 构造函数
-	 * 
+	 *
 	 * @param rotors      转子
 	 * @param rotor_count 转子数量
 	 */
