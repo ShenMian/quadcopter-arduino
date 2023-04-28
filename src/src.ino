@@ -46,9 +46,10 @@ void loop()
 	{
 		const auto  curr_timepoint = millis();
 		const float dt             = (curr_timepoint - prev_timepoint) * 1000.f;
-		prev_timepoint             = curr_timepoint;
 
 		estimator.update(dt);
 		controller.update(estimator, dt);
+
+		prev_timepoint = curr_timepoint;
 	}
 }
