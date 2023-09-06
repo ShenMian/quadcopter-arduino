@@ -1,5 +1,8 @@
 # Quadcopter
 
+> [!WARNING]  
+> 该项目没有经过任何测试.
+
 ## 测试
 
 由于 Arduino 可能不支持通过相对路径导入 Sketch 以外的头文件, 所以进行测试需要先用 `tests` 中对应的 ino 文件替代 `src` 中的 ino 文件.  
