@@ -1,0 +1,25 @@
+name: Arduino
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Compile Arduino Sketches
+      uses: arduino/compile-sketches@v1.1.0
+      with:
+        sketch-paths: "src"
+        fqbn: "arduino:avr:nano"
+        libraries: |
+          - name: Servo
+          - name: Adafruit BMP280 Library
+          - name: Adafruit MPU6050
+          - name: Kalman Filter Library
