@@ -62,7 +62,7 @@ public:
 	/**
 	 * @brief 设置目标节流阀
 	 *
-	 * @param throttle 目标节流阀, 范围 [0, 1]
+	 * @param throttle 目标节流阀, 范围: [0, 1]
 	 */
 	void set_throttle(float throttle) noexcept { target_throttle_ = clamp(throttle, 0.f, 1.f); }
 

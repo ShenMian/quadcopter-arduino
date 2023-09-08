@@ -24,7 +24,7 @@ public:
 	/**
 	 * @brief 设置 PWM 占空比
 	 *
-	 * @param duty_cycle 占空比, 范围 [0, 1]
+	 * @param duty_cycle 占空比, 范围: [0, 1]
 	 */
 	void set_pwm_duty_cycle(float duty_cycle)
 	{

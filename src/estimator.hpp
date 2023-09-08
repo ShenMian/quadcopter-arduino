@@ -66,7 +66,7 @@ public:
 	float       get_temperature() const { return temperature_->get_temperature(); }
 
 	/**
-	 * @brief 获取空气密度, 单位 kg/m³
+	 * @brief 获取空气密度, 单位: kg/m³
 	 */
 	float get_air_density() const
 	{

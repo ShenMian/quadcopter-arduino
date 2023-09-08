@@ -8,6 +8,10 @@ void setup()
 {
 }
 
+/**
+ * 输出加速度计, 陀螺仪, 气压计的读数到串口.
+ * 用于检测传感器是否能正常工作.
+ */
 void loop()
 {
 	Accelerometer& acc  = mpu;
