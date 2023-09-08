@@ -44,13 +44,13 @@ class Estimator
 public:
   void update(float dt) { ... };
 
-  virtual Vector3     get_acceleration() const { return accelerometer->get_acceleration(); };
-  virtual EulerAngles get_angular_velocity() const { return gyroscope->get_angular_velocity(); };
+  virtual Vector3     get_acceleration() const { return accelerometer_->get_acceleration(); };
+  virtual EulerAngles get_angular_velocity() const { return gyroscope_->get_angular_velocity(); };
   ...
 
 private:
-  Accelerometer* accelerometer;
-  Gyroscope*     gyroscope;
+  Accelerometer* accelerometer_;
+  Gyroscope*     gyroscope_;
   ...
 };
 ```
