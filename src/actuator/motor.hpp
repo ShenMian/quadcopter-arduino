@@ -20,13 +20,13 @@ public:
 		if(!armed_)
 			return;
 		speed = clamp(speed, 0.f, 1.f);
-		set_speed_(speed);
+		set_speed_impl(speed);
 	};
 
 	void armed(bool arm)
 	{
 		if(arm == false)
-			set_speed_(0.f);
+			set_speed_impl(0.f);
 		armed_ = arm;
 	}
 
@@ -35,7 +35,7 @@ public:
 	virtual void attach(uint8_t pin) = 0;
 
 protected:
-	virtual void set_speed_(float speed) = 0;
+	virtual void set_speed_impl(float speed) = 0;
 
 private:
 	bool armed_ = false;

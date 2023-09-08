@@ -47,7 +47,7 @@ public:
 	}
 
 private:
-	void set_speed_(float speed) override { set_pwm_duty_cycle(speed); }
+	void set_speed_impl(float speed) override { set_pwm_duty_cycle(speed); }
 
 	uint8_t  pin_;
 	uint16_t rated_speed_;
