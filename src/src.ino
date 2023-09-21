@@ -1,6 +1,7 @@
 #include "math.hpp"
 #include "pid.hpp"
 #include "rotor.hpp"
+#include "config.hpp"
 
 #include "controller.hpp"
 #include "estimator.hpp"
@@ -9,16 +10,6 @@
 #include "sensor/battery.hpp"
 
 #include <Arduino.h>
-
-enum Pin : uint8_t
-{
-	motor_front_right = 5,
-	motor_front_left  = 6,
-	motor_back_right  = 9,
-	motor_back_left   = 3,
-
-	battery_ = A7,
-};
 
 DCMotor motors[4] = {Pin::motor_front_right, Pin::motor_front_left, Pin::motor_back_right, Pin::motor_back_left};
 

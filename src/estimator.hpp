@@ -40,16 +40,8 @@ public:
 		position_ += velocity_ * dt;
 		position_.z = get_altitude() - takeoff_altitude_;
 
-#if 1
-		const float roll  = rad_to_deg(atan2(acc.y, acc.z));
+		const float roll  = rad_to_deg(atan2(acc.y, sqrt(acc.x * acc.x + acc.z * acc.z)));
 		const float pitch = rad_to_deg(atan2(-acc.x, sqrt(acc.y * acc.y + acc.z * acc.z)));
-#elif 0
-		const float roll  = rad_to_deg(atan2(acc.y, acc.z));
-		const float pitch = rad_to_deg(atan(-acc.x / sqrt(acc.y * acc.y + acc.z * acc.z)));
-#else
-		const float roll  = rad_to_degatan(acc.y / sqrt(acc.x * acc.x + acc.z * acc.z));
-		const float pitch = rad_to_deg(atan2(-acc.x, acc.z));
-#endif
 
 		angles_.pitch = pitch_kalman_filter_.getAngle(pitch, gyro.pitch, dt);
 		angles_.roll  = roll_kalman_filter_.getAngle(roll, gyro.roll, dt);
