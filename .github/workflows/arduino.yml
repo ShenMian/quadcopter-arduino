@@ -19,7 +19,8 @@ jobs:
         sketch-paths: "src"
         fqbn: "arduino:avr:nano"
         libraries: |
-          - name: Servo
           - name: Adafruit BMP280 Library
           - name: Adafruit MPU6050
           - name: Kalman Filter Library
+          - name: RF24
+          - name: Servo
