@@ -5,7 +5,7 @@
 
 ## 测试
 
-由于 Arduino 可能不支持通过相对路径导入 Sketch 以外的头文件, 所以进行测试需要先用 `tests` 中对应的 ino 文件替代 `src` 中的 ino 文件.  
+由于 Arduino 可能不支持通过相对路径导入 Sketch 以外的头文件, 所以进行测试需要先用 `tests` 中对应的 ino 文件替代 `src` 中的 `src.ino` 文件.  
 
 ## 传感器(Sensor)
 
@@ -115,3 +115,11 @@ for(uint8_t i = 0; i < n; i++)
 ```
 
 **可能的改进**: 滚转/偏航和节流阀对机体稳定性的贡献可能比偏航大, 因此可以牺牲偏航的调节量.  
+
+## 依赖项
+
+- [Adafruit BMP280 Library](https://github.com/adafruit/Adafruit_BMP280_Library)
+- [Adafruit MPU6050](https://github.com/adafruit/Adafruit_MPU6050)
+- [Kalman Filter Library](https://github.com/TKJElectronics/KalmanFilter)
+- [RF24](https://github.com/nRF24/RF24)
+- [Servo](https://github.com/arduino-libraries/Servo)
