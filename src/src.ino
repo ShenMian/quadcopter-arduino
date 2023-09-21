@@ -2,6 +2,7 @@
 #include "pid.hpp"
 #include "rotor.hpp"
 #include "config.hpp"
+#include "radio.hpp"
 
 #include "controller.hpp"
 #include "estimator.hpp"
@@ -25,6 +26,14 @@ Rotor           rotors[4] = {
 Estimator  estimator;
 Battery    battery(Pin::battery_, 3.2f, 4.2f, 10, 10);
 Controller controller(rotors, 4);
+Radio      radio(Pin::radio_ce, Pin::radio_csn, "00001", "00002");
+
+// TODO: 对 float 类型的变量进行标准化
+struct Package
+{
+	EulerAngles target_angles;
+	float       target_throttle;
+};
 
 void setup()
 {
@@ -37,6 +46,13 @@ void loop()
 	{
 		const auto  curr_timepoint = millis();
 		const float dt             = (curr_timepoint - prev_timepoint) * 1000.f;
+
+		Package package;
+		if(radio.read(package))
+		{
+			controller.set_target_angles(package.target_angles);
+			controller.set_target_throttle(package.target_throttle);
+		}
 
 		estimator.update(dt);
 		controller.update(estimator, dt);
