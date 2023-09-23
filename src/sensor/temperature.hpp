@@ -6,8 +6,8 @@
 class Temperature
 {
 public:
-  /**
-   * @brief 获取温度, 单位: °C
-   */
-  virtual float get_temperature() const = 0;
+	/**
+	 * @brief 获取温度, 单位: °C
+	 */
+	virtual float get_temperature() const = 0;
 };

@@ -14,6 +14,9 @@ DCMotor motors[4] = {Pin::motor_front_right, Pin::motor_front_left, Pin::motor_b
 
 void setup()
 {
+	Serial.begin(115200);
+	while(!Serial)
+		delay(10);
 }
 
 /**
@@ -31,5 +34,5 @@ void loop()
 		motors[i].disarm();
 		delay(1000);
 	}
-	abort();
+	terminate();
 }

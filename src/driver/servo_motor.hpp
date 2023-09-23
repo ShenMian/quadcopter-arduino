@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../actuator/motor.hpp"
+#include "../utility.hpp"
 #include <Arduino.h>
 #include <Servo.h>
 #include <stdint.h>
@@ -13,15 +14,15 @@ class ServoMotor : public Motor
 public:
 	ServoMotor() = default;
 
-	ServoMotor(uint8_t pin)
-	{
-		attach(pin);
-	}
+	ServoMotor(uint8_t pin) { attach(pin); }
 
 	void attach(uint8_t pin) override
 	{
 		if(servo_.attach(pin) == INVALID_SERVO)
-			abort();
+		{
+			Serial.println("Failed to attatch servo motor");
+			terminate();
+		}
 	}
 
 private:
