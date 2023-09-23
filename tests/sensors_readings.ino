@@ -1,9 +1,6 @@
 #include "driver/bmp280.hpp"
 #include "driver/mpu6050.hpp"
 
-MPU6050 mpu;
-BMP280  bmp;
-
 void setup()
 {
 	Serial.begin(115200);
@@ -17,6 +14,9 @@ void setup()
  */
 void loop()
 {
+	MPU6050 mpu;
+	BMP280  bmp;
+
 	Accelerometer& acc  = mpu;
 	Gyroscope&     gyro = mpu;
 	Barometer&     baro = bmp;

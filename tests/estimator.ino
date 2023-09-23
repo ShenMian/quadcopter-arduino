@@ -1,7 +1,5 @@
 #include "estimator.hpp"
 
-Estimator estimator;
-
 void setup()
 {
 	Serial.begin(115200);
@@ -16,15 +14,34 @@ void setup()
  */
 void loop()
 {
-	estimator.update(dt);
+	Estimator estimator;
 
-	const auto angles = estimator.get_angles();
+	auto prev_timepoint = millis();
+	while(true)
+	{
+		const auto  curr_timepoint = millis();
+		const float dt             = (curr_timepoint - prev_timepoint) * 1000.f;
 
-	Serial.print("$");
-	Serial.print(angles.yaw);
-	Serial.print(" ");
-	Serial.print(angles.pitch);
-	Serial.print(" ");
-	Serial.print(angles.roll);
-	Serial.print(";");
+		estimator.update(dt);
+
+		const auto angles = estimator.get_angles();
+#if 0
+		Serial.print("yaw:");
+		Serial.println(angles.yaw);
+		Serial.print("pitch:");
+		Serial.println(angles.pitch);
+		Serial.print("roll:");
+		Serial.println(angles.roll);
+#else
+		Serial.print("$");
+		Serial.print(angles.yaw);
+		Serial.print(" ");
+		Serial.print(angles.pitch);
+		Serial.print(" ");
+		Serial.print(angles.roll);
+		Serial.println(";");
+#endif
+
+		prev_timepoint = curr_timepoint;
+	}
 }
