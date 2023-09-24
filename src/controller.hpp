@@ -24,6 +24,8 @@ public:
 	 */
 	void update(const Estimator& estimator, float dt)
 	{
+		fault_protection(estimator);
+
 		const auto angles = estimator.get_angles();
 
 		EulerAngles output_angles;
@@ -66,7 +68,30 @@ public:
 	 */
 	void set_target_throttle(float throttle) noexcept { target_throttle_ = clamp(throttle, 0.f, 1.f); }
 
+	void arm_rotors()
+	{
+		for(uint8_t i = 0; i < rotor_count_; i++)
+		{
+			rotors_[i].motor.armed(true);
+		}
+	}
+
+	void disarm_rotors()
+	{
+		for(uint8_t i = 0; i < rotor_count_; i++)
+		{
+			rotors_[i].motor.armed(false);
+		}
+	}
+
 private:
+	void fault_protection(const Estimator& estimator)
+	{
+		const auto angles = estimator.get_angles();
+		if(angles.pitch > 90 || angles.roll > 90)
+			disarm_rotors();
+	}
+
 	float       target_throttle_;
 	EulerAngles target_angles_;
 
