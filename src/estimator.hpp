@@ -24,6 +24,16 @@ public:
 		gyroscope_     = static_cast<Gyroscope*>(&mpu_);
 		barometer_     = static_cast<Barometer*>(&bmp_);
 		temperature_   = static_cast<Temperature*>(&bmp_);
+
+		const auto  acc = get_acceleration();
+		const float acc_roll  = rad_to_deg(atan2(-acc.x, sqrt(acc.y * acc.y + acc.z * acc.z)));
+		const float acc_pitch = rad_to_deg(atan2(acc.y, sqrt(acc.x * acc.x + acc.z * acc.z)));
+
+		angles_.yaw   = 0.f;
+		angles_.pitch = acc_pitch;
+		angles_.roll  = acc_roll;
+		pitch_kalman_filter_.setAngle(angles_.pitch);
+		roll_kalman_filter_.setAngle(angles_.roll);
 	}
 
 	/**
@@ -38,13 +48,14 @@ public:
 
 		velocity_ += acc * dt;
 		position_ += velocity_ * dt;
-		position_.z = get_altitude() - takeoff_altitude_;
+		position_.z = (get_altitude() - takeoff_altitude_) * 0.9 + position_.z * 0.1;
 
-		const float roll  = rad_to_deg(atan2(acc.y, sqrt(acc.x * acc.x + acc.z * acc.z)));
-		const float pitch = rad_to_deg(atan2(-acc.x, sqrt(acc.y * acc.y + acc.z * acc.z)));
+		const float acc_roll  = rad_to_deg(atan2(-acc.x, sqrt(acc.y * acc.y + acc.z * acc.z)));
+		const float acc_pitch = rad_to_deg(atan2(acc.y, sqrt(acc.x * acc.x + acc.z * acc.z)));
 
-		angles_.pitch = pitch_kalman_filter_.getAngle(pitch, gyro.pitch, dt);
-		angles_.roll  = roll_kalman_filter_.getAngle(roll, gyro.roll, dt);
+		angles_.yaw += rad_to_deg(gyro.yaw) * dt;
+		angles_.pitch = pitch_kalman_filter_.getAngle(angles_.pitch * 0.8 + acc_pitch * 0.2, rad_to_deg(gyro.pitch), dt);
+		angles_.roll  = roll_kalman_filter_.getAngle(angles_.roll * 0.8 + acc_roll * 0.2, rad_to_deg(gyro.roll), dt);
 	}
 
 	Vector3     get_position() const noexcept { return position_; }
