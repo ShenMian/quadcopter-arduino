@@ -7,6 +7,16 @@
 
 由于 Arduino 可能不支持通过相对路径导入 Sketch 以外的头文件, 所以进行测试需要先用 `tests` 中对应的 ino 文件替代 `src` 中的 `src.ino` 文件.  
 
+## 飞行控制器(Flight controller, FC)
+
+```cpp
+motor_speed flight_controller(sensor_reading) { ... }
+```
+
+```txt
+Sensors -> Flight controller -> Actuators
+```
+
 ## 传感器(Sensor)
 
 由于传感器组件可能包含一个或多个不同类型的传感器, 例如 MPU6050 包含加速度计/陀螺仪和温度传感器, 因此需要一种方法能够统一地从各种传感器组件中获取数据.  
