@@ -31,7 +31,7 @@ public:
 		return {accel_event.acceleration.x, accel_event.acceleration.y, accel_event.acceleration.z};
 	}
 
-	EulerAngles get_angular_velocity() const override
+	EulerAngles get_raw_angular_velocity() const override
 	{
 		sensors_event_t accel_event, gyro_event, temp_event;
 		mpu_.getEvent(&accel_event, &gyro_event, &temp_event);
