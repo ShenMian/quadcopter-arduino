@@ -24,13 +24,13 @@ public:
 	float pid(float target, float actual, float dt)
 	{
 		const float error = target - actual;
-		prev_error_       = error;
 
 		const float p = kp * error;
 		integral_ += ki * error * dt;
 		const float d = kd * (error - prev_error_) / dt;
 
 		integral_ = clamp(integral_, -integral_limit_, integral_limit_);
+		prev_error_ = error;
 
 		return p + integral_ + d;
 	}
