@@ -73,11 +73,35 @@ union EulerAngles {
 	};
 	float v[3];
 
+	EulerAngles operator+(const EulerAngles& rhs) const noexcept { return EulerAngles(*this) += rhs; }
+
 	EulerAngles operator-(const EulerAngles& rhs) const noexcept { return EulerAngles(*this) -= rhs; }
+
+	EulerAngles operator*(const float rhs) const noexcept { return EulerAngles(*this) *= rhs; }
+
+	EulerAngles operator/(const float rhs) const noexcept { return EulerAngles(*this) /= rhs; }
+
+	EulerAngles& operator+=(const EulerAngles& rhs) noexcept
+	{
+		yaw += rhs.yaw, pitch += rhs.pitch, roll += rhs.roll;
+		return *this;
+	}
 
 	EulerAngles& operator-=(const EulerAngles& rhs) noexcept
 	{
 		yaw -= rhs.yaw, pitch -= rhs.pitch, roll -= rhs.roll;
+		return *this;
+	}
+
+	EulerAngles& operator*=(const float rhs) noexcept
+	{
+		yaw *= rhs, pitch *= rhs, roll *= rhs;
+		return *this;
+	}
+
+	EulerAngles& operator/=(const float rhs) noexcept
+	{
+		yaw /= rhs, pitch /= rhs, roll /= rhs;
 		return *this;
 	}
 };
